@@ -1,7 +1,9 @@
 import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import type { Source } from "@executor-js/sdk/core";
-import { Effect, Result } from "effect";
+import { Effect, Match, Result } from "effect";
 
+import { runExecutorConfigUi } from "./executor-config.ts";
+import { executorCommandHelp, parseExecutorSubcommand } from "./executor-subcommand.ts";
 import { formatErrorWithCauses } from "../errors.ts";
 import { ConfigService } from "../services/config.ts";
 import { ExecutorHostService, type ExecutorHost } from "../services/executor-host.ts";
@@ -12,13 +14,6 @@ export interface ExecutorStatus {
   readonly level: "info" | "warning" | "error";
   readonly statusBar: string;
 }
-
-const commandHelp = [
-  "/executor status - show active Executor host status",
-  "/executor reload - rebuild the Executor host for this cwd",
-  "/executor settings - show Pi Executor rendering settings",
-  "/executor help - show this help",
-].join("\n");
 
 const maxStatusSources = 12;
 
@@ -67,62 +62,25 @@ const formatHostStatus = (host: ExecutorHost, sources: readonly Source[]): strin
     formatSources(sources),
   ].join("\n");
 
-export const executorStatusCommand = (
-  args: string,
-  ctx: ExtensionCommandContext,
-): Effect.Effect<
-  ExecutorStatus,
-  never,
-  ConfigService | ExecutorHostService | SessionStateService
-> =>
+const helpStatus = (): ExecutorStatus => ({
+  summary: executorCommandHelp,
+  level: "info",
+  statusBar: "executor: help",
+});
+
+const unknownStatus = (name: string): ExecutorStatus => ({
+  summary: `Unknown /executor command: ${name}\n\n${executorCommandHelp}`,
+  level: "warning",
+  statusBar: "executor: help",
+});
+
+const runHostSubcommand = (
+  reload: boolean,
+  cwd: string,
+): Effect.Effect<ExecutorStatus, never, ExecutorHostService> =>
   Effect.gen(function* () {
-    const config = yield* ConfigService;
     const hosts = yield* ExecutorHostService;
-    const sessionState = yield* SessionStateService;
-    const resolved = yield* config.resolve(ctx.cwd);
-    const snapshot = yield* sessionState.snapshot(ctx);
-    const command = args.trim().split(/\s+/, 1)[0]?.toLowerCase() || "status";
-
-    yield* Effect.logDebug("executor.status").pipe(
-      Effect.annotateLogs({
-        args: command,
-        cwd: resolved.cwd,
-        hasUI: snapshot.hasUI,
-        model: snapshot.model,
-      }),
-    );
-
-    if (command === "help") {
-      return {
-        summary: commandHelp,
-        level: "info",
-        statusBar: "executor: help",
-      };
-    }
-
-    if (command === "settings") {
-      return {
-        summary: [
-          "Pi Executor settings",
-          `maxCodePreviewLines: ${resolved.settings.render.maxCodePreviewLines}`,
-          `maxJsonBytes: ${resolved.settings.render.maxJsonBytes}`,
-          `maxLogLines: ${resolved.settings.render.maxLogLines}`,
-        ].join("\n"),
-        level: "info",
-        statusBar: "executor: settings",
-      };
-    }
-
-    if (command !== "status" && command !== "reload") {
-      return {
-        summary: `Unknown /executor command: ${command}\n\n${commandHelp}`,
-        level: "warning",
-        statusBar: "executor: help",
-      };
-    }
-
-    const loadHost = command === "reload" ? hosts.reload(resolved.cwd) : hosts.get(resolved.cwd);
-    const host = yield* Effect.result(loadHost);
+    const host = yield* Effect.result(reload ? hosts.reload(cwd) : hosts.get(cwd));
 
     if (Result.isFailure(host)) {
       return {
@@ -138,16 +96,57 @@ export const executorStatusCommand = (
       return {
         summary: `${formatHostStatus(host.success, [])}\n\nFailed to list sources:\n${formatErrorWithCauses(sources.failure)}`,
         level: "warning",
-        statusBar:
-          command === "reload"
-            ? "executor: reloaded, sources error"
-            : "executor: ready, sources error",
+        statusBar: reload ? "executor: reloaded, sources error" : "executor: ready, sources error",
       };
     }
 
     return {
       summary: formatHostStatus(host.success, sources.success),
       level: "info",
-      statusBar: command === "reload" ? "executor: reloaded" : "executor: ready",
+      statusBar: reload ? "executor: reloaded" : "executor: ready",
     };
+  });
+
+export const executorStatusCommand = (
+  args: string,
+  ctx: ExtensionCommandContext,
+): Effect.Effect<
+  ExecutorStatus,
+  never,
+  ConfigService | ExecutorHostService | SessionStateService
+> =>
+  Effect.gen(function* () {
+    const config = yield* ConfigService;
+    const sessionState = yield* SessionStateService;
+    const resolved = yield* config.resolve(ctx.cwd);
+    const snapshot = yield* sessionState.snapshot(ctx);
+    const subcommand = parseExecutorSubcommand(args);
+
+    yield* Effect.logDebug("executor.command").pipe(
+      Effect.annotateLogs({
+        subcommand: subcommand._tag,
+        cwd: resolved.cwd,
+        hasUI: snapshot.hasUI,
+        model: snapshot.model,
+      }),
+    );
+
+    return yield* Match.value(subcommand).pipe(
+      Match.tag("Help", () => Effect.succeed(helpStatus())),
+      Match.tag("Config", () =>
+        Effect.gen(function* () {
+          yield* runExecutorConfigUi(ctx);
+          const refreshed = yield* config.resolve(ctx.cwd);
+          return {
+            summary: `Executor Pi settings (${refreshed.settings.displayMode})`,
+            level: "info",
+            statusBar: config.formatStatusBar(refreshed.settings),
+          } satisfies ExecutorStatus;
+        }),
+      ),
+      Match.tag("Status", () => runHostSubcommand(false, resolved.cwd)),
+      Match.tag("Reload", () => runHostSubcommand(true, resolved.cwd)),
+      Match.tag("Unknown", ({ name }) => Effect.succeed(unknownStatus(name))),
+      Match.exhaustive,
+    );
   });
