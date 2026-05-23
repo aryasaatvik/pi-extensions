@@ -1,6 +1,6 @@
 # Local FumaDB Package
 
-`executor-pi` uses a local `fumadb` tarball generated from
+`executor-pi` uses a vendored `fumadb` tarball generated from
 `~/Developer/executor/packages/core/fumadb`.
 
 This is a package/export workaround, not a host ownership workaround. The Pi
@@ -26,10 +26,11 @@ The script:
 - promotes `publishConfig.exports` into package `exports`
 - removes package scripts and dev dependencies from the packed copy
 - verifies `dist/adapters/memory/index.js` is present and exported
-- writes `.local-packages/fumadb-<version>-<executor-short-sha>.tgz`
+- writes `vendor/fumadb-<version>-<executor-short-sha>.tgz`
 - updates both `dependencies.fumadb` and `overrides.fumadb`
 
-`.local-packages/` is ignored because the tarball is generated local state.
+`vendor/` is committed so npm and git package installs can resolve the file
+dependency without regenerating it.
 
 ## Validation
 
