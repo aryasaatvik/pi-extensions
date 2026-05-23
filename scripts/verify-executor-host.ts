@@ -27,7 +27,7 @@ const assert = (condition: unknown, message: string): void => {
   }
 };
 
-const workspace = mkdtempSync(join(tmpdir(), "pi-executor-host-runtime-"));
+const workspace = mkdtempSync(join(tmpdir(), "executor-pi-host-runtime-"));
 const projectDir = join(workspace, "project");
 const dataDir = join(workspace, "data");
 

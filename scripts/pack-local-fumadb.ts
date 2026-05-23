@@ -106,7 +106,7 @@ if (!existsSync(sourceTarballPath)) {
   throw new Error(`Expected bun pack to create ${sourceTarballPath}`);
 }
 
-const tempDir = mkdtempSync(join(tmpdir(), "pi-executor-fumadb-"));
+const tempDir = mkdtempSync(join(tmpdir(), "executor-pi-fumadb-"));
 try {
   run("tar", ["-xzf", sourceTarballPath, "-C", tempDir], { cwd: repoDir });
 
