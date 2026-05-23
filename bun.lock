@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "pi-executor",
+      "name": "executor-pi",
       "dependencies": {
         "@executor-js/config": "1.4.33",
         "@executor-js/execution": "1.4.33",
