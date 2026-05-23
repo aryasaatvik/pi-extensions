@@ -5,7 +5,7 @@ import { ConfigService } from "../services/config.ts";
 import { ElicitationUiService } from "../services/elicitation-ui.ts";
 import { ExecutionService } from "../services/execution.ts";
 import { ExecutorHostService } from "../services/executor-host.ts";
-import { LoggerService } from "../services/logger.ts";
+import { ExecutorPiLoggerLayer } from "../services/logger.ts";
 import { RenderService } from "../services/render.ts";
 import { SearchService } from "../services/search.ts";
 import { SessionStateService } from "../services/session-state.ts";
@@ -15,7 +15,6 @@ export type AppServices =
   | ElicitationUiService
   | ExecutionService
   | ExecutorHostService
-  | LoggerService
   | RenderService
   | SearchService
   | SessionStateService;
@@ -26,8 +25,8 @@ export const makeAppLayer = (pi: ExtensionAPI): Layer.Layer<AppServices> =>
     ElicitationUiService.Default,
     ExecutionService.Default,
     ExecutorHostService.Default,
-    LoggerService.Default,
     RenderService.Default,
     SearchService.Default,
     SessionStateService.Default,
+    ExecutorPiLoggerLayer,
   );

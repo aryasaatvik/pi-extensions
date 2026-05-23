@@ -3,6 +3,7 @@ import { formatExecuteResult } from "@executor-js/execution/core";
 import { Context, Effect, Layer } from "effect";
 
 import { ExecutionError } from "../errors.ts";
+import { prepareExecuteSource } from "../executor/code.ts";
 import type { ExecuteDetails, ExecuteInput } from "../schemas/execute.ts";
 import { ElicitationUiService } from "./elicitation-ui.ts";
 import { ExecutorHostService } from "./executor-host.ts";
@@ -40,8 +41,9 @@ export class ExecutionService extends Context.Service<
               }),
           ),
         );
+        const code = prepareExecuteSource(request.input.code);
         const result = yield* host.engine
-          .execute(request.input.code, {
+          .execute(code, {
             onElicitation: (ctx) =>
               elicitation
                 .respond(ctx, request.ctx)

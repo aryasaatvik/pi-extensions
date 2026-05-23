@@ -31,6 +31,7 @@ export const makeExecuteTool = (
       "Use search first when the Executor tool path or input shape is unknown.",
       "Inside execute code, use tools.search({ query, limit }) and tools.describe.tool({ path }) for sandbox-local discovery.",
       "Inside Executor code, call tools by full namespace path, such as tools.github.getRepositoryDetails(input).",
+      "Use a top-level return statement for the value Pi should receive; bare final expressions execute but return null.",
       "Keep snippets focused and return structured JSON when the result will be inspected by Pi.",
       "Do not use fetch; use configured Executor tools.",
     ],

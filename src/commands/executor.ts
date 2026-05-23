@@ -2,9 +2,10 @@ import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import type { Source } from "@executor-js/sdk/core";
 import { Effect, Result } from "effect";
 
+import { formatErrorWithCauses } from "../errors.ts";
 import { ConfigService } from "../services/config.ts";
 import { ExecutorHostService, type ExecutorHost } from "../services/executor-host.ts";
-import { LoggerService } from "../services/logger.ts";
+import { logDebug } from "../services/logger.ts";
 import { SessionStateService } from "../services/session-state.ts";
 
 export interface ExecutorStatus {
@@ -73,18 +74,17 @@ export const executorStatusCommand = (
 ): Effect.Effect<
   ExecutorStatus,
   never,
-  ConfigService | ExecutorHostService | LoggerService | SessionStateService
+  ConfigService | ExecutorHostService | SessionStateService
 > =>
   Effect.gen(function* () {
     const config = yield* ConfigService;
     const hosts = yield* ExecutorHostService;
-    const logger = yield* LoggerService;
     const sessionState = yield* SessionStateService;
     const resolved = yield* config.resolve(ctx.cwd);
     const snapshot = yield* sessionState.snapshot(ctx);
     const command = args.trim().split(/\s+/, 1)[0]?.toLowerCase() || "status";
 
-    yield* logger.debug("executor.status", {
+    yield* logDebug("executor.status", {
       args: command,
       cwd: resolved.cwd,
       hasUI: snapshot.hasUI,
@@ -125,7 +125,7 @@ export const executorStatusCommand = (
 
     if (Result.isFailure(host)) {
       return {
-        summary: host.failure.message,
+        summary: formatErrorWithCauses(host.failure),
         level: "error",
         statusBar: "executor: error",
       };
@@ -135,7 +135,7 @@ export const executorStatusCommand = (
 
     if (Result.isFailure(sources)) {
       return {
-        summary: `${formatHostStatus(host.success, [])}\n\nFailed to list sources: ${sources.failure.message}`,
+        summary: `${formatHostStatus(host.success, [])}\n\nFailed to list sources:\n${formatErrorWithCauses(sources.failure)}`,
         level: "warning",
         statusBar:
           command === "reload"
