@@ -11,6 +11,7 @@
   "bugs": {
     "url": "https://github.com/aryasaatvik/executor-pi/issues"
   },
+  "license": "MIT",
   "author": "Saatvik Arya <aryasaatvik@gmail.com>",
   "repository": {
     "type": "git",
