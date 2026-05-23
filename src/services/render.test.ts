@@ -16,14 +16,17 @@ const theme = {
 const renderText = (text: { render: (width: number) => string[] }): string =>
   text.render(220).join("\n");
 
+const mockConfigService = (settings: ExecutorSettings) =>
+  Layer.succeed(ConfigService)({
+    resolve: (cwd) => Effect.succeed({ cwd, settings }),
+    saveGlobal: () => Effect.void,
+    saveProject: () => Effect.void,
+    formatSettingsSummary: () => "",
+    formatStatusBar: () => "executor: test",
+  });
+
 const renderLayer = (settings: ExecutorSettings) =>
-  RenderService.Default.pipe(
-    Layer.provideMerge(
-      Layer.succeed(ConfigService)({
-        resolve: (cwd) => Effect.succeed({ cwd, settings }),
-      }),
-    ),
-  );
+  RenderService.Default.pipe(Layer.provideMerge(mockConfigService(settings)));
 
 const runRender = <A>(effect: Effect.Effect<A, never, RenderService>): A =>
   Effect.runSync(effect.pipe(Effect.provide(renderLayer(DefaultExecutorSettings))));
@@ -34,6 +37,35 @@ const runRenderWithSettings = <A>(
 ): A => Effect.runSync(effect.pipe(Effect.provide(renderLayer(settings))));
 
 describe("renderSearchResult", () => {
+  it("hides the sources footer when disabled", () => {
+    const details: SearchDetails = {
+      total: 1,
+      hasMore: false,
+      nextOffset: null,
+      items: [
+        {
+          path: "tools.github.search",
+          name: "search",
+          description: "Search GitHub",
+          sourceId: "github",
+          score: 1,
+        },
+      ],
+    };
+
+    const text = runRenderWithSettings(
+      {
+        ...DefaultExecutorSettings,
+        search: { ...DefaultExecutorSettings.search, showSourcesFooter: false },
+      },
+      Effect.flatMap(RenderService.asEffect(), (render) =>
+        render.renderSearchResult("/tmp", details, "", {}, theme),
+      ),
+    );
+
+    expect(text).not.toContain("Sources");
+  });
+
   it("renders compact snippets and a source footer", () => {
     const details: SearchDetails = {
       total: 29,
@@ -163,6 +195,8 @@ describe("renderExecuteResult", () => {
 
   it("applies configured render limits", () => {
     const settings: ExecutorSettings = {
+      ...DefaultExecutorSettings,
+      displayMode: "custom",
       render: {
         maxCodePreviewLines: 1,
         maxJsonBytes: 20,

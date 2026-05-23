@@ -4,6 +4,7 @@ import { Context, Effect, Layer } from "effect";
 
 import { ExecutionError } from "../errors.ts";
 import type { SearchDetails, SearchInput, SearchResultItem } from "../schemas/search.ts";
+import { ConfigService } from "./config.ts";
 import { ExecutorHostService } from "./executor-host.ts";
 
 export interface SearchRequest {
@@ -26,12 +27,13 @@ export class SearchService extends Context.Service<
   {
     readonly search: (
       request: SearchRequest,
-    ) => Effect.Effect<SearchResponse, ExecutionError, ExecutorHostService>;
+    ) => Effect.Effect<SearchResponse, ExecutionError, ConfigService | ExecutorHostService>;
   }
 >()("SearchService") {
   static readonly Default = Layer.succeed(this)({
     search: (request) =>
       Effect.gen(function* () {
+        const config = yield* ConfigService;
         const hosts = yield* ExecutorHostService;
         const host = yield* hosts.get(request.ctx.cwd).pipe(
           Effect.mapError(
@@ -56,7 +58,10 @@ export class SearchService extends Context.Service<
               }),
           ),
         );
-        const items = request.input.includeDetails
+        const resolved = yield* config.resolve(request.ctx.cwd);
+        const includeDetails =
+          request.input.includeDetails ?? resolved.settings.search.defaultIncludeDetails;
+        const items = includeDetails
           ? yield* Effect.all(
               result.items.map((item) =>
                 describeTool(host.executor, item.path).pipe(

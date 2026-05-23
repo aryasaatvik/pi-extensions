@@ -108,6 +108,15 @@ Pi-specific settings only control the Pi extension experience, such as rendering
 preferences and command behavior. Tool sources, secrets, policies, and plugin
 configuration stay in Executor.
 
+Pi Executor settings files:
+
+- Global: `~/.pi/agent/executor-pi.json`
+- Project override: `.pi/executor-pi.json`
+
+Use `/executor config` in the Pi TUI to adjust display density (`concise`,
+`balanced`, `verbose`, or `custom`), search defaults, and render limits.
+`/executor settings` is accepted as an alias for `config`.
+
 ## Development
 
 This package uses Bun, Effect v4, `tsgo`, `oxlint`, and `oxfmt`.

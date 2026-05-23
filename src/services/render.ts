@@ -194,6 +194,7 @@ const renderSearchResultWithSettings = (
   options: { readonly expanded?: boolean; readonly isPartial?: boolean },
   theme: Theme,
   settings: RenderSettings,
+  search: { readonly showSourcesFooter: boolean },
 ): Text => {
   if (options.isPartial) {
     return new Text(theme.fg("warning", "Search running..."), 0, 0);
@@ -226,7 +227,9 @@ const renderSearchResultWithSettings = (
     }
   }
 
-  lines.push("", sectionLabel("Sources", theme), theme.fg("dim", formatSources(details)));
+  if (search.showSourcesFooter) {
+    lines.push("", sectionLabel("Sources", theme), theme.fg("dim", formatSources(details)));
+  }
 
   return new Text(lines.join("\n"), 0, 0);
 };
@@ -263,26 +266,39 @@ export class RenderService extends Context.Service<
   static readonly Default = Layer.effect(this)(
     Effect.gen(function* () {
       const config = yield* ConfigService;
-      const renderSettings = (cwd: string) =>
-        config.resolve(cwd).pipe(Effect.map((resolved) => resolved.settings.render));
+      const resolveSettings = (cwd: string) =>
+        config.resolve(cwd).pipe(Effect.map((resolved) => resolved.settings));
 
       return {
         renderExecuteCall: (cwd, args, theme) =>
-          renderSettings(cwd).pipe(
-            Effect.map((settings) => renderExecuteCallWithSettings(args, theme, settings)),
+          resolveSettings(cwd).pipe(
+            Effect.map((settings) => renderExecuteCallWithSettings(args, theme, settings.render)),
           ),
         renderExecuteResult: (cwd, details, contentText, options, theme) =>
-          renderSettings(cwd).pipe(
+          resolveSettings(cwd).pipe(
             Effect.map((settings) =>
-              renderExecuteResultWithSettings(details, contentText, options, theme, settings),
+              renderExecuteResultWithSettings(
+                details,
+                contentText,
+                options,
+                theme,
+                settings.render,
+              ),
             ),
           ),
         renderSearchCall: (_cwd, args, theme) =>
           Effect.succeed(renderSearchCallWithSettings(args, theme)),
         renderSearchResult: (cwd, details, contentText, options, theme) =>
-          renderSettings(cwd).pipe(
+          resolveSettings(cwd).pipe(
             Effect.map((settings) =>
-              renderSearchResultWithSettings(details, contentText, options, theme, settings),
+              renderSearchResultWithSettings(
+                details,
+                contentText,
+                options,
+                theme,
+                settings.render,
+                settings.search,
+              ),
             ),
           ),
       };
