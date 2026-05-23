@@ -1,9 +1,12 @@
 import type { Theme } from "@earendil-works/pi-coding-agent";
+import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
 import type { ExecuteDetails } from "../schemas/execute.ts";
 import type { SearchDetails } from "../schemas/search.ts";
-import { renderExecuteCall, renderExecuteResult, renderSearchResult } from "./render.ts";
+import { type ExecutorSettings, DefaultExecutorSettings } from "../schemas/settings.ts";
+import { ConfigService } from "./config.ts";
+import { RenderService } from "./render.ts";
 
 const theme = {
   bold: (value: string) => value,
@@ -12,6 +15,23 @@ const theme = {
 
 const renderText = (text: { render: (width: number) => string[] }): string =>
   text.render(220).join("\n");
+
+const renderLayer = (settings: ExecutorSettings) =>
+  RenderService.Default.pipe(
+    Layer.provideMerge(
+      Layer.succeed(ConfigService)({
+        resolve: (cwd) => Effect.succeed({ cwd, settings }),
+      }),
+    ),
+  );
+
+const runRender = <A>(effect: Effect.Effect<A, never, RenderService>): A =>
+  Effect.runSync(effect.pipe(Effect.provide(renderLayer(DefaultExecutorSettings))));
+
+const runRenderWithSettings = <A>(
+  settings: ExecutorSettings,
+  effect: Effect.Effect<A, never, RenderService>,
+): A => Effect.runSync(effect.pipe(Effect.provide(renderLayer(settings))));
 
 describe("renderSearchResult", () => {
   it("renders compact snippets and a source footer", () => {
@@ -45,7 +65,13 @@ describe("renderSearchResult", () => {
       ],
     };
 
-    const output = renderText(renderSearchResult(details, "", { expanded: false }, theme));
+    const output = renderText(
+      runRender(
+        Effect.flatMap(RenderService.asEffect(), (render) =>
+          render.renderSearchResult("/tmp/project", details, "", { expanded: false }, theme),
+        ),
+      ),
+    );
 
     expect(output).toContain("29 result(s)");
     expect(output).toContain("Tools");
@@ -83,7 +109,13 @@ describe("renderSearchResult", () => {
       ],
     };
 
-    const output = renderText(renderSearchResult(details, "", { expanded: true }, theme));
+    const output = renderText(
+      runRender(
+        Effect.flatMap(RenderService.asEffect(), (render) =>
+          render.renderSearchResult("/tmp/project", details, "", { expanded: true }, theme),
+        ),
+      ),
+    );
 
     expect(output).toContain("Provide query as natural language");
     expect(output).toContain("Input");
@@ -103,9 +135,23 @@ describe("renderExecuteResult", () => {
     };
 
     const callOutput = renderText(
-      renderExecuteCall({ code: "return { value: 1 + 2, source: 'executor-pi-dogfood' };" }, theme),
+      runRender(
+        Effect.flatMap(RenderService.asEffect(), (render) =>
+          render.renderExecuteCall(
+            "/tmp/project",
+            { code: "return { value: 1 + 2, source: 'executor-pi-dogfood' };" },
+            theme,
+          ),
+        ),
+      ),
     );
-    const output = renderText(renderExecuteResult(details, "", { expanded: false }, theme));
+    const output = renderText(
+      runRender(
+        Effect.flatMap(RenderService.asEffect(), (render) =>
+          render.renderExecuteResult("/tmp/project", details, "", { expanded: false }, theme),
+        ),
+      ),
+    );
 
     expect(callOutput).toContain("Code");
     expect(output).toContain("Output");
@@ -113,5 +159,43 @@ describe("renderExecuteResult", () => {
     expect(output).toContain('"source": "executor-pi-dogfood"');
     expect(output).toContain("Logs: none");
     expect(output).not.toContain("Executor completed");
+  });
+
+  it("applies configured render limits", () => {
+    const settings: ExecutorSettings = {
+      render: {
+        maxCodePreviewLines: 1,
+        maxJsonBytes: 20,
+        maxLogLines: 1,
+      },
+    };
+    const details: ExecuteDetails = {
+      status: "completed",
+      result: { value: "abcdefghijklmnopqrstuvwxyz" },
+      logs: ["first\nsecond"],
+    };
+
+    const callOutput = renderText(
+      runRenderWithSettings(
+        settings,
+        Effect.flatMap(RenderService.asEffect(), (render) =>
+          render.renderExecuteCall("/tmp/project", { code: "const x = 1;\nreturn x;" }, theme),
+        ),
+      ),
+    );
+    const output = renderText(
+      runRenderWithSettings(
+        settings,
+        Effect.flatMap(RenderService.asEffect(), (render) =>
+          render.renderExecuteResult("/tmp/project", details, "", { expanded: true }, theme),
+        ),
+      ),
+    );
+
+    expect(callOutput).toContain("... truncated 1 line(s)");
+    expect(output).toContain("... truncated");
+    expect(output).toContain("first");
+    expect(output).toContain("... 1 more log line(s)");
+    expect(output).not.toContain("second");
   });
 });
