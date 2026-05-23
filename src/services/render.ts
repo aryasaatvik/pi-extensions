@@ -3,6 +3,7 @@ import { Text } from "@earendil-works/pi-tui";
 import { Context, Effect, Layer } from "effect";
 
 import type { ExecuteDetails, ExecuteInput } from "../schemas/execute.ts";
+import type { SearchDetails, SearchInput } from "../schemas/search.ts";
 
 const maxPreviewChars = 4_000;
 
@@ -75,6 +76,57 @@ export const renderExecuteResult = (
 
   if (!options.expanded && details.logs.length > 0) {
     lines.push(theme.fg("dim", `${details.logs.length} log line(s)`));
+  }
+
+  return new Text(lines.join("\n"), 0, 0);
+};
+
+export const renderSearchCall = (args: SearchInput, theme: Theme): Text => {
+  const suffix = [
+    args.namespace ? `namespace=${args.namespace}` : undefined,
+    args.limit ? `limit=${args.limit}` : undefined,
+    args.offset ? `offset=${args.offset}` : undefined,
+    args.includeDetails ? "details" : undefined,
+  ]
+    .filter((part): part is string => part !== undefined)
+    .join(" ");
+  const lines = [
+    theme.fg("toolTitle", theme.bold("Search")),
+    theme.fg("toolOutput", args.query),
+    ...(suffix ? [theme.fg("dim", suffix)] : []),
+  ];
+
+  return new Text(lines.join("\n"), 0, 0);
+};
+
+export const renderSearchResult = (
+  details: SearchDetails | undefined,
+  contentText: string,
+  options: { readonly expanded?: boolean; readonly isPartial?: boolean },
+  theme: Theme,
+): Text => {
+  if (options.isPartial) {
+    return new Text(theme.fg("warning", "Search running..."), 0, 0);
+  }
+
+  if (!details) {
+    return new Text(truncate(contentText), 0, 0);
+  }
+
+  const lines = [
+    theme.fg("success", theme.bold(`Search found ${details.total} result(s)`)),
+    ...details.items.map((item) => {
+      const summary = item.description ? ` - ${item.description}` : "";
+      return theme.fg("toolOutput", `${item.path}${summary}`);
+    }),
+  ];
+
+  if (details.hasMore && details.nextOffset !== null) {
+    lines.push(theme.fg("dim", `More results at offset ${details.nextOffset}`));
+  }
+
+  if (options.expanded) {
+    lines.push("", theme.fg("muted", "JSON"), truncate(stringify(details)));
   }
 
   return new Text(lines.join("\n"), 0, 0);

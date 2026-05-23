@@ -7,6 +7,7 @@ import { ExecutionService } from "../services/execution.ts";
 import { ExecutorHostService } from "../services/executor-host.ts";
 import { LoggerService } from "../services/logger.ts";
 import { RenderService } from "../services/render.ts";
+import { SearchService } from "../services/search.ts";
 import { SessionStateService } from "../services/session-state.ts";
 
 export type AppServices =
@@ -16,6 +17,7 @@ export type AppServices =
   | ExecutorHostService
   | LoggerService
   | RenderService
+  | SearchService
   | SessionStateService;
 
 export const makeAppLayer = (pi: ExtensionAPI): Layer.Layer<AppServices> =>
@@ -26,5 +28,6 @@ export const makeAppLayer = (pi: ExtensionAPI): Layer.Layer<AppServices> =>
     ExecutorHostService.Default,
     LoggerService.Default,
     RenderService.Default,
+    SearchService.Default,
     SessionStateService.Default,
   );
