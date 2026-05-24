@@ -1,6 +1,6 @@
 # Local FumaDB Package
 
-`executor-pi` uses a vendored `fumadb` tarball generated from
+`@pi-ext/executor` uses a vendored `fumadb` package generated from
 `~/Developer/executor/packages/core/fumadb`.
 
 This is a package/export workaround, not a host ownership workaround. The Pi
@@ -27,10 +27,13 @@ The script:
 - removes package scripts and dev dependencies from the packed copy
 - verifies `dist/adapters/memory/index.js` is present and exported
 - writes `vendor/fumadb-<version>-<executor-short-sha>.tgz`
-- updates both `dependencies.fumadb` and `overrides.fumadb`
+- extracts that tarball into `vendor/fumadb`
+- keeps root `dependencies.fumadb` and `overrides.fumadb` pointed at
+  `file:packages/executor/vendor/fumadb`
 
-`vendor/` is committed so npm and git package installs can resolve the file
-dependency without regenerating it.
+`@pi-ext/executor` does not declare `fumadb` directly. The root dependency and
+override make Bun resolve Executor SDK and local source to one vendored
+`fumadb` instance.
 
 ## Validation
 
@@ -40,5 +43,5 @@ Run:
 bun run verify:host
 ```
 
-The verifier checks that `package.json` points at a short-SHA `fumadb` tarball
-and that the override matches the dependency.
+The verifier checks that `fumadb` is wired through the root vendored package and
+that the host can create local SQLite storage under Node/jiti.

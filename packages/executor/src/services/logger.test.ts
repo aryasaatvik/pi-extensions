@@ -8,7 +8,7 @@ describe("isDebugNamespaceEnabled", () => {
     expect(isDebugNamespaceEnabled("executor-pi")).toBe(true);
     expect(isDebugNamespaceEnabled("executor-pi:*")).toBe(true);
     expect(isDebugNamespaceEnabled("*")).toBe(true);
-    expect(isDebugNamespaceEnabled("executor")).toBe(false);
+    expect(isDebugNamespaceEnabled("legacy-executor")).toBe(false);
   });
 
   it("supports comma, whitespace, and disabled patterns", () => {

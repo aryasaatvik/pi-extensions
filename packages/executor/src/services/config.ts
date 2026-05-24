@@ -2,7 +2,7 @@ import { Context, Effect, Layer } from "effect";
 
 import { formatDisplayModeLabel } from "../config/display-presets.ts";
 import {
-  formatExecutorSettingsSummary,
+  formatExecutorPiSettingsSummary,
   loadExecutorPiSettings,
   saveGlobalExecutorPiSettings,
   saveProjectExecutorPiSettings,
@@ -29,7 +29,7 @@ export class ConfigService extends Context.Service<
       loadExecutorPiSettings(cwd).pipe(Effect.map((settings) => ({ cwd, settings }))),
     saveGlobal: saveGlobalExecutorPiSettings,
     saveProject: saveProjectExecutorPiSettings,
-    formatSettingsSummary: formatExecutorSettingsSummary,
+    formatSettingsSummary: formatExecutorPiSettingsSummary,
     formatStatusBar: (settings) => `executor: ${formatDisplayModeLabel(settings.displayMode)}`,
   });
 }

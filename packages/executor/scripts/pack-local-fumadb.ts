@@ -17,7 +17,7 @@ type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
 type JsonObject = { [key: string]: JsonValue | undefined };
 
 interface Dependencies {
-  fumadb: string;
+  fumadb?: string;
   [name: string]: string;
 }
 
@@ -28,8 +28,8 @@ interface Overrides {
 
 interface PiPackage {
   dependencies: Dependencies;
-  overrides: Overrides;
-  [field: string]: JsonValue | Dependencies | Overrides;
+  overrides?: Overrides;
+  [field: string]: JsonValue | Dependencies | Overrides | undefined;
 }
 
 interface FumadbPackage extends JsonObject {
@@ -45,10 +45,12 @@ interface FumadbPackage extends JsonObject {
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoDir = resolve(scriptDir, "..");
+const rootDir = resolve(repoDir, "../..");
 const executorFumadbDir =
-  process.env.EXECUTOR_FUMADB_DIR ?? resolve(repoDir, "../executor/packages/core/fumadb");
+  process.env.EXECUTOR_FUMADB_DIR ?? resolve(rootDir, "../executor/packages/core/fumadb");
 const vendorDir = join(repoDir, "vendor");
 const repoPackagePath = join(repoDir, "package.json");
+const rootPackagePath = join(rootDir, "package.json");
 
 const run = (
   command: string,
@@ -156,11 +158,24 @@ try {
     throw new Error("Packed fumadb tarball does not export dist/adapters/memory");
   }
 
+  const vendorPackageDir = join(vendorDir, "fumadb");
+  rmSync(vendorPackageDir, { force: true, recursive: true });
+  mkdirSync(vendorPackageDir, { recursive: true });
+  run("tar", ["-xzf", outputTarballPath, "-C", vendorPackageDir, "--strip-components=1"], {
+    cwd: repoDir,
+  });
+
   const repoPackage = readJson<PiPackage>(repoPackagePath);
-  const tarballDependency = `file:./vendor/${outputFileName}`;
-  repoPackage.dependencies.fumadb = tarballDependency;
-  repoPackage.overrides.fumadb = tarballDependency;
+  delete repoPackage.dependencies.fumadb;
   writeJson(repoPackagePath, repoPackage);
+
+  const rootPackage = readJson<PiPackage>(rootPackagePath);
+  rootPackage.dependencies.fumadb = "file:packages/executor/vendor/fumadb";
+  rootPackage.overrides = {
+    ...(rootPackage.overrides ?? {}),
+    fumadb: "file:packages/executor/vendor/fumadb",
+  };
+  writeJson(rootPackagePath, rootPackage);
 
   console.log(`Packed local fumadb: ${outputTarballPath}`);
 } finally {

@@ -14,7 +14,7 @@ export default function piExecutor(pi: ExtensionAPI): void {
   pi.registerTool(makeExecuteTool(runtime));
 
   pi.registerCommand("executor", {
-    description: "Inspect and manage the executor-pi extension",
+    description: "Inspect and manage the executor extension",
     handler: async (args, ctx) => {
       const status = await runtime.runPromise(executorStatusCommand(args, ctx));
 

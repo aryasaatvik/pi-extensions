@@ -10,11 +10,11 @@ import * as paths from "./paths.ts";
 import { loadExecutorPiSettings, saveGlobalExecutorPiSettings } from "./store.ts";
 import { DefaultExecutorSettings } from "../schemas/settings.ts";
 
-describe("executor pi config store", () => {
+describe("executor config store", () => {
   let tempDir = "";
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "executor-pi-config-"));
+    tempDir = mkdtempSync(join(tmpdir(), "executor-config-"));
     vi.spyOn(paths, "globalExecutorPiConfigPath").mockReturnValue(
       join(tempDir, "executor-pi.json"),
     );

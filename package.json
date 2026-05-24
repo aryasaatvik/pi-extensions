@@ -5,8 +5,7 @@
   "description": "Monorepo for Pi coding agent extensions",
   "license": "MIT",
   "workspaces": [
-    "packages/*",
-    "packages/executor/vendor/fumadb"
+    "packages/*"
   ],
   "type": "module",
   "scripts": {
@@ -18,6 +17,9 @@
     "format:check": "oxfmt --check packages",
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
   },
+  "dependencies": {
+    "fumadb": "file:packages/executor/vendor/fumadb"
+  },
   "devDependencies": {
     "@effect/language-service": "^0.85.1",
     "@effect/tsgo": "^0.5.2",
@@ -27,7 +29,7 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
-    "fumadb": "workspace:*"
+    "fumadb": "file:packages/executor/vendor/fumadb"
   },
   "engines": {
     "node": ">=22.0.0"

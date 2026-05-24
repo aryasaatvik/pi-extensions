@@ -72,7 +72,7 @@ export const saveProjectExecutorPiSettings = (
 ): Effect.Effect<void, Error> =>
   writeConfigFile(projectExecutorPiConfigPath(cwd), normalizeExecutorSettings(settings));
 
-export const formatExecutorSettingsSummary = (settings: ExecutorSettingsType): string => {
+export const formatExecutorPiSettingsSummary = (settings: ExecutorSettingsType): string => {
   const lines = [
     "Pi Executor settings",
     `displayMode: ${settings.displayMode}`,

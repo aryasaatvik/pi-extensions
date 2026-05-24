@@ -1,20 +1,20 @@
 {
-  "name": "executor-pi",
+  "name": "@pi-ext/executor",
   "version": "0.2.0",
   "keywords": [
     "executor",
     "pi-extension",
     "pi-package"
   ],
-  "homepage": "https://github.com/aryasaatvik/executor-pi#readme",
+  "homepage": "https://github.com/aryasaatvik/pi-extensions#readme",
   "bugs": {
-    "url": "https://github.com/aryasaatvik/executor-pi/issues"
+    "url": "https://github.com/aryasaatvik/pi-extensions/issues"
   },
   "license": "MIT",
   "author": "Saatvik Arya <aryasaatvik@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aryasaatvik/executor-pi.git"
+    "url": "git+https://github.com/aryasaatvik/pi-extensions.git"
   },
   "files": [
     "docs",
@@ -47,7 +47,6 @@
     "better-sqlite3": "^12.10.0",
     "drizzle-orm": "^0.45.0",
     "effect": "4.0.0-beta.59",
-    "fumadb": "file:./vendor/fumadb-0.3.0-382dcd65.tgz",
     "oxc-parser": "^0.132.0"
   },
   "devDependencies": {

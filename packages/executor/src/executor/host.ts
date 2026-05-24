@@ -33,7 +33,7 @@ export const createExecutorHost = (
     const sqlite = yield* Effect.tryPromise({
       try: () =>
         createSqliteFumaDb({
-          tables: collectTables(loaded.plugins),
+          tables: collectTables(loaded.plugins) as never,
           namespace: localNamespace,
           path: storage.sqlitePath,
         }),
@@ -52,7 +52,7 @@ export const createExecutorHost = (
     const executor = yield* createExecutor({
       scopes: [executorScope],
       db: {
-        db: sqlite.db,
+        db: sqlite.db as never,
         close: sqlite.close,
       },
       plugins: loaded.plugins,

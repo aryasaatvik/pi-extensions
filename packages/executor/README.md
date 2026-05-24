@@ -1,6 +1,6 @@
-# executor-pi
+# executor
 
-`executor-pi` is a first-class Pi extension for running Executor from inside Pi
+`executor` is a first-class Pi extension for running Executor from inside Pi
 with native approval, elicitation, rendering, and project-aware Executor
 configuration.
 
@@ -97,7 +97,7 @@ configuration, and available diagnostics.
 
 ## Configuration
 
-`executor-pi` follows Executor's local project configuration model:
+`executor` follows Executor's local project configuration model:
 
 - Project config: `executor.jsonc` in the active project.
 - Storage: local Executor storage under `~/.executor`.

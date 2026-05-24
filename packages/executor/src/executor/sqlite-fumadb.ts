@@ -5,11 +5,15 @@ import {
   drizzleAdapter,
 } from "fumadb/adapters/drizzle";
 import { schema as fumaSchema, type RelationsMap } from "fumadb/schema";
+import type { AnyTable } from "fumadb/schema";
+import type { AbstractQuery } from "fumadb/query";
 import { createRequire } from "node:module";
 
-import type { FumaDb, FumaTables } from "@executor-js/sdk/core";
-
 const require = createRequire(import.meta.url);
+
+type FumaTables = Record<string, AnyTable>;
+type FumaDb<TSchema extends ReturnType<typeof fumaSchema> = ReturnType<typeof fumaSchema>> =
+  AbstractQuery<TSchema>;
 
 type SqliteFumaSchema<TTables extends FumaTables> = ReturnType<
   typeof fumaSchema<string, TTables, RelationsMap<TTables>>

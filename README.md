@@ -101,6 +101,6 @@ Root [`oxlint.config.ts`](./oxlint.config.ts) and
 ## Workspace Notes
 
 - Root `bun.lock` is authoritative.
-- `packages/executor` depends on a vendored `fumadb` workspace package. The
-  workspace root owns the matching override so Executor SDK and the package
-  resolve the same `fumadb` instance.
+- `packages/executor` vendors `fumadb` under `packages/executor/vendor/`.
+  The workspace root owns the dependency and override so Executor SDK resolves
+  the patched package.
