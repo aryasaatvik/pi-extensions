@@ -28,12 +28,14 @@
   "scripts": {
     "deps:pack-fumadb": "bun scripts/pack-local-fumadb.ts",
     "install:local": "bun run deps:pack-fumadb && bun install",
+    "search:eval": "node --import jiti/register src/search/eval-cli.ts",
     "verify:host": "node --import jiti/register scripts/verify-executor-host.ts",
     "typecheck": "tsgo --noEmit",
     "test": "vitest run",
     "check": "bun run typecheck && bun run test && bun run verify:host"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.79",
     "@executor-js/config": "1.4.33",
     "@executor-js/execution": "1.4.33",
     "@executor-js/plugin-file-secrets": "1.4.33",
@@ -44,10 +46,12 @@
     "@executor-js/plugin-openapi": "1.4.33",
     "@executor-js/runtime-quickjs": "1.4.33",
     "@executor-js/sdk": "1.4.33",
+    "ai": "^6.0.191",
     "better-sqlite3": "^12.10.0",
     "drizzle-orm": "^0.45.0",
     "effect": "4.0.0-beta.59",
-    "oxc-parser": "^0.132.0"
+    "oxc-parser": "^0.132.0",
+    "sqlite-vec": "0.1.9"
   },
   "devDependencies": {
     "@earendil-works/pi-ai": "0.75.4",
