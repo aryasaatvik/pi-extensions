@@ -1,8 +1,10 @@
 import {
   defineTool,
+  keyText,
   type ExtensionContext,
   type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
 import { Effect, type ManagedRuntime } from "effect";
 
 import type { AppServices } from "../app/layer.ts";
@@ -13,6 +15,14 @@ import { WebService } from "../services/web.ts";
 
 const errorMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : String(cause);
+
+const truncate = (text: string, maxCharacters: number): string => {
+  const compacted = text.replace(/\s+/g, " ").trim();
+  if (compacted.length <= maxCharacters) {
+    return compacted;
+  }
+  return `${compacted.slice(0, maxCharacters - 1).trimEnd()}…`;
+};
 
 export const makeWebSearchTool = (
   runtime: ManagedRuntime.ManagedRuntime<AppServices, never>,
@@ -48,14 +58,19 @@ Query tips: describe the ideal page, not keywords. Use category:people / categor
           Effect.flatMap(WebService.asEffect(), (web) => web.search(input, ctx.cwd)),
         );
 
+        const compactText = formatSearchMarkdown(output);
+        const expandedText = formatSearchMarkdown(output, { expanded: true });
+
         return {
-          content: [{ type: "text", text: formatSearchMarkdown(output) }],
+          content: [{ type: "text", text: compactText }],
           details: {
             provider: output.provider,
             query: output.query,
             hitCount: output.hits.length,
             requestId: output.requestId,
             searchTime: output.searchTime,
+            compactText,
+            expandedText,
           },
         };
       } catch (cause) {
@@ -69,5 +84,69 @@ Query tips: describe the ideal page, not keywords. Use category:people / categor
           isError: true,
         };
       }
+    },
+    renderCall(args, theme) {
+      const filters = args.filters;
+      const params = [
+        `mode=${args.mode ?? "standard"}`,
+        `results=${args.numResults ?? 10}`,
+        args.searchQueries?.length ? `queries=${args.searchQueries.length}` : undefined,
+        filters?.category ? `category=${filters.category}` : undefined,
+        filters?.includeDomains?.length
+          ? `include=${filters.includeDomains.slice(0, 3).join(",")}`
+          : undefined,
+        filters?.excludeDomains?.length
+          ? `exclude=${filters.excludeDomains.slice(0, 3).join(",")}`
+          : undefined,
+        filters?.startPublishedDate ? `after=${filters.startPublishedDate}` : undefined,
+        filters?.endPublishedDate ? `before=${filters.endPublishedDate}` : undefined,
+        filters?.location ? `location=${filters.location}` : undefined,
+      ].filter((param): param is string => param !== undefined);
+
+      const lines = [
+        `${theme.fg("toolTitle", theme.bold("web_search"))} ${theme.fg(
+          "accent",
+          truncate(args.query, 140),
+        )}`,
+      ];
+      if (params.length > 0) {
+        lines.push(theme.fg("dim", params.join(" | ")));
+      }
+      if (args.searchQueries?.length) {
+        lines.push(
+          theme.fg(
+            "dim",
+            `searchQueries: ${args.searchQueries.map((query) => truncate(query, 80)).join("; ")}`,
+          ),
+        );
+      }
+
+      return new Text(lines.join("\n"), 0, 0);
+    },
+    renderResult(result, { expanded, isPartial }, theme) {
+      if (isPartial) {
+        return new Text(theme.fg("warning", "Searching..."), 0, 0);
+      }
+
+      const details = result.details;
+      const content = result.content[0];
+      const fallbackText = content?.type === "text" ? content.text : "";
+      const body = expanded
+        ? (details?.expandedText ?? fallbackText)
+        : (details?.compactText ?? fallbackText);
+      const lines = [
+        theme.fg(
+          "success",
+          theme.bold(`${details?.hitCount ?? 0} result(s) via ${details?.provider ?? "web"}`),
+        ),
+      ];
+      if (body) {
+        lines.push("", theme.fg("toolOutput", body));
+      }
+      if (!expanded && details?.expandedText && details.expandedText !== body) {
+        lines.push("", theme.fg("muted", `${keyText("app.tools.expand")} to show full excerpts`));
+      }
+
+      return new Text(lines.join("\n"), 0, 0);
     },
   });

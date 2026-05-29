@@ -50,6 +50,8 @@ export const WebSearchToolDetails = Schema.Struct({
   hitCount: Schema.Number,
   requestId: Schema.optional(Schema.String),
   searchTime: Schema.optional(Schema.Number),
+  compactText: Schema.optional(Schema.String),
+  expandedText: Schema.optional(Schema.String),
 });
 
 export type WebSearchToolDetails = typeof WebSearchToolDetails.Type;

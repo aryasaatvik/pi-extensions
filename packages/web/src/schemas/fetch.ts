@@ -29,6 +29,8 @@ export const WebFetchToolDetails = Schema.Struct({
   provider: Schema.Union([Schema.Literal("exa"), Schema.Literal("parallel")]),
   urlCount: Schema.Number,
   searchTime: Schema.optional(Schema.Number),
+  compactText: Schema.optional(Schema.String),
+  expandedText: Schema.optional(Schema.String),
 });
 
 export type WebFetchToolDetails = typeof WebFetchToolDetails.Type;
