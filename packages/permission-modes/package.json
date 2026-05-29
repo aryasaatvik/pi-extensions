@@ -1,0 +1,44 @@
+{
+  "name": "@pi-ext/permission-modes",
+  "version": "0.0.1",
+  "description": "Pi extension: Claude-Code-style permission modes (Shift+Tab) with a merged allow/deny/ask rule engine",
+  "keywords": [
+    "pi-extension",
+    "pi-package",
+    "permissions",
+    "permission-modes"
+  ],
+  "license": "MIT",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "type": "module",
+  "dependencies": {
+    "tree-sitter-bash": "0.25.1",
+    "web-tree-sitter": "0.26.9"
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "oxlint src test",
+    "format": "oxfmt src test",
+    "format:check": "oxfmt --check src test",
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.75.4",
+    "@earendil-works/pi-tui": "0.75.4",
+    "@types/node": "^25.0.0",
+    "vitest": "4.1.4"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}
