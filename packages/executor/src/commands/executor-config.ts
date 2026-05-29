@@ -6,11 +6,12 @@ import { Effect } from "effect";
 import { applyDisplayMode, formatDisplayModeLabel } from "../config/display-presets.ts";
 import { globalExecutorPiConfigPath, projectExecutorPiConfigPath } from "../config/paths.ts";
 import { saveGlobalExecutorPiSettings, saveProjectExecutorPiSettings } from "../config/store.ts";
-import type { DisplayMode, ExecutorSettings } from "../schemas/settings.ts";
+import type { DisplayMode, ExecutorSettings, SearchMode } from "../schemas/settings.ts";
 import { ConfigService } from "../services/config.ts";
 
 const displayModeValues = ["concise", "balanced", "verbose", "custom"] as const;
 const booleanValues = ["on", "off"] as const;
+const searchModeValues = ["hybrid", "fts", "executor"] as const;
 const codePreviewValues = ["24", "40", "80", "120"] as const;
 const jsonByteValues = ["12000", "40000", "100000"] as const;
 const logLineValues = ["40", "200", "500"] as const;
@@ -22,6 +23,14 @@ const boolToOnOff = (value: boolean): string => (value ? "on" : "off");
 const onOffToBool = (value: string): boolean => value === "on";
 
 const buildSettingItems = (settings: ExecutorSettings, scope: ConfigScope): SettingItem[] => [
+  {
+    id: "search.mode",
+    label: "Search mode",
+    description:
+      "Hybrid blends FTS and vectors. FTS uses SQLite. Executor uses the default engine.",
+    currentValue: settings.search.mode,
+    values: [...searchModeValues],
+  },
   {
     id: "displayMode",
     label: "Display density",
@@ -100,6 +109,14 @@ const applySettingChange = (
     };
   }
 
+  if (id === "search.mode") {
+    return {
+      ...settings,
+      displayMode: "custom",
+      search: { ...settings.search, mode: newValue as SearchMode },
+    };
+  }
+
   const render = { ...settings.render };
   if (id === "maxCodePreviewLines") {
     render.maxCodePreviewLines = Number(newValue);
@@ -128,6 +145,7 @@ const syncSettingsList = (settingsList: SettingsList, settings: ExecutorSettings
     "search.showSourcesFooter",
     boolToOnOff(settings.search.showSourcesFooter),
   );
+  settingsList.updateValue("search.mode", settings.search.mode);
   settingsList.updateValue("maxCodePreviewLines", String(settings.render.maxCodePreviewLines));
   settingsList.updateValue("maxJsonBytes", String(settings.render.maxJsonBytes));
   settingsList.updateValue("maxLogLines", String(settings.render.maxLogLines));

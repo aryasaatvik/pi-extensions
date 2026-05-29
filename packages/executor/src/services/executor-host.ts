@@ -4,6 +4,9 @@ import { Context, Effect, Layer } from "effect";
 
 import { createExecutorHost } from "../executor/index.ts";
 import { ExecutorHostError } from "../errors.ts";
+import type { SearchMode } from "../schemas/settings.ts";
+import type { SearchIndexStatus } from "../search/store.ts";
+import type { SearchDebugRow } from "../search/store.ts";
 
 export interface ExecutorHost<TEngine = ExecutionEngine<any>> {
   readonly executor: Executor<readonly AnyPlugin[]>;
@@ -13,8 +16,19 @@ export interface ExecutorHost<TEngine = ExecutionEngine<any>> {
   readonly scopeId: string;
   readonly dataDir: string;
   readonly sqlitePath: string;
+  readonly searchSqlitePath: string;
+  readonly searchDocumentCount: number;
+  readonly searchIndexStatus: SearchIndexStatus;
+  readonly searchMode: SearchMode;
   readonly configPath: string;
+  readonly globalSettingsPath: string;
+  readonly projectSettingsPath: string;
+  readonly reconcileSearchIndex: () => Effect.Effect<SearchIndexStatus, ExecutorHostError>;
   readonly close: () => Effect.Effect<void>;
+  readonly rebuildSearchIndex: () => Effect.Effect<SearchIndexStatus, ExecutorHostError>;
+  readonly inspectSearchDocument: (
+    path: string,
+  ) => Effect.Effect<SearchDebugRow | null, ExecutorHostError>;
   readonly reload: () => Effect.Effect<ExecutorHost, ExecutorHostError>;
 }
 

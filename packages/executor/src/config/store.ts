@@ -81,6 +81,12 @@ export const formatExecutorPiSettingsSummary = (settings: ExecutorSettingsType):
     `maxLogLines: ${settings.render.maxLogLines}`,
     `search.defaultIncludeDetails: ${settings.search.defaultIncludeDetails}`,
     `search.showSourcesFooter: ${settings.search.showSourcesFooter}`,
+    `search.mode: ${settings.search.mode}`,
+    `search.embeddings: ${
+      settings.search.embeddings
+        ? `${settings.search.embeddings.provider} ${settings.search.embeddings.model} (${settings.search.embeddings.dimensions})`
+        : "not configured"
+    }`,
     `global: ${globalExecutorPiConfigPath()}`,
   ];
 

@@ -44,7 +44,7 @@ describe("executor config store", () => {
       JSON.stringify({
         displayMode: "custom",
         render: { maxCodePreviewLines: 40, maxJsonBytes: 40_000, maxLogLines: 200 },
-        search: { defaultIncludeDetails: false, showSourcesFooter: true },
+        search: { defaultIncludeDetails: false, showSourcesFooter: true, mode: "hybrid" },
       }),
     );
 

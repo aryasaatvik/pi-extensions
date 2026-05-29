@@ -23,6 +23,7 @@ export const displayPresets: Record<Exclude<DisplayMode, "custom">, DisplayPrese
     search: {
       defaultIncludeDetails: false,
       showSourcesFooter: false,
+      mode: "fts",
     },
   },
   balanced: {
@@ -38,6 +39,7 @@ export const displayPresets: Record<Exclude<DisplayMode, "custom">, DisplayPrese
     search: {
       defaultIncludeDetails: true,
       showSourcesFooter: true,
+      mode: "fts",
     },
   },
 };
@@ -58,7 +60,9 @@ export const settingsMatchPreset = (
     settings.render.maxJsonBytes === preset.render.maxJsonBytes &&
     settings.render.maxLogLines === preset.render.maxLogLines &&
     settings.search.defaultIncludeDetails === preset.search.defaultIncludeDetails &&
-    settings.search.showSourcesFooter === preset.search.showSourcesFooter
+    settings.search.showSourcesFooter === preset.search.showSourcesFooter &&
+    settings.search.mode === preset.search.mode &&
+    settings.search.embeddings === undefined
   );
 };
 

@@ -1,4 +1,9 @@
-import { createExecutionEngine, type ExecutionEngine } from "@executor-js/execution/core";
+import {
+  createExecutionEngine,
+  defaultToolDiscoveryProvider,
+  type ExecutionEngine,
+  type ToolDiscoveryProvider,
+} from "@executor-js/execution/core";
 import {
   createExecutor,
   collectTables,
@@ -10,17 +15,30 @@ import {
 import { makeQuickJsExecutor } from "@executor-js/runtime-quickjs";
 import { Effect } from "effect";
 
+import { globalExecutorPiConfigPath, projectExecutorPiConfigPath } from "../config/paths.ts";
+import { loadExecutorPiSettings } from "../config/store.ts";
 import { ExecutorHostError } from "../errors.ts";
+import { makeConfiguredSearchEmbeddingProvider } from "../search/embeddings.ts";
+import { rebuildSearchIndex, reconcileSearchIndex } from "../search/indexer.ts";
+import { makeFtsToolDiscoveryProvider } from "../search/provider.ts";
+import {
+  getSearchIndexStatus,
+  hasUsableSearchIndex,
+  inspectSearchDocument,
+  openSearchStore,
+} from "../search/store.ts";
 import type { ExecutorHost } from "../services/executor-host.ts";
 import { loadExecutorPlugins } from "./plugin-config.ts";
 import { resolveExecutorScope } from "./scope.ts";
 import { createSqliteFumaDb } from "./sqlite-fumadb.ts";
 import { resolveExecutorStorage } from "./storage.ts";
+import type { SearchMode } from "../schemas/settings.ts";
 
 const localNamespace = "executor_local";
 
 export interface CreateExecutorHostOptions {
   readonly cwd: string;
+  readonly searchModeOverride?: SearchMode;
 }
 
 export const createExecutorHost = (
@@ -29,6 +47,14 @@ export const createExecutorHost = (
   Effect.gen(function* () {
     const scope = resolveExecutorScope(options.cwd);
     const storage = resolveExecutorStorage();
+    const loadedSettings = yield* loadExecutorPiSettings(scope.scopeDir);
+    const settings = options.searchModeOverride
+      ? {
+          ...loadedSettings,
+          search: { ...loadedSettings.search, mode: options.searchModeOverride },
+        }
+      : loadedSettings;
+    const embeddingProvider = makeConfiguredSearchEmbeddingProvider(settings.search.embeddings);
     const loaded = yield* loadExecutorPlugins(scope.scopeDir);
     const sqlite = yield* Effect.tryPromise({
       try: () =>
@@ -72,9 +98,50 @@ export const createExecutorHost = (
       ),
     );
 
+    const searchStore = yield* Effect.try({
+      try: () =>
+        openSearchStore(storage.searchSqlitePath, {
+          embeddingDimensions: embeddingProvider?.dimensions,
+        }),
+      catch: (cause) =>
+        new ExecutorHostError({
+          message: `Failed to open Executor Pi search storage at ${storage.searchSqlitePath}`,
+          cause,
+        }),
+    });
+    const mapSearchError = (cause: unknown) =>
+      new ExecutorHostError({
+        message: cause instanceof Error ? cause.message : "Executor search index failed.",
+        cause,
+      });
+    let searchIndexStatus = getSearchIndexStatus(searchStore.db);
+    if (
+      settings.search.mode !== "executor" &&
+      !hasUsableSearchIndex(searchStore.db, embeddingProvider)
+    ) {
+      yield* rebuildSearchIndex(searchStore, executor, embeddingProvider).pipe(
+        Effect.mapError(
+          (cause) =>
+            new ExecutorHostError({
+              message: cause.message,
+              cause,
+            }),
+        ),
+      );
+      searchIndexStatus = getSearchIndexStatus(searchStore.db);
+    }
+    let searchDocumentCount = searchIndexStatus.documentCount;
+    const toolDiscoveryProvider: ToolDiscoveryProvider =
+      settings.search.mode === "executor"
+        ? defaultToolDiscoveryProvider
+        : makeFtsToolDiscoveryProvider(searchStore, {
+            hybrid: settings.search.mode === "hybrid" && embeddingProvider !== null,
+            embeddingProvider: embeddingProvider ?? undefined,
+          });
     const engine = createExecutionEngine({
       executor,
       codeExecutor: makeQuickJsExecutor(),
+      toolDiscoveryProvider,
     });
 
     return {
@@ -85,8 +152,44 @@ export const createExecutorHost = (
       scopeId: scope.scopeId,
       dataDir: storage.dataDir,
       sqlitePath: storage.sqlitePath,
+      searchSqlitePath: storage.searchSqlitePath,
+      get searchDocumentCount() {
+        return searchDocumentCount;
+      },
+      get searchIndexStatus() {
+        return searchIndexStatus;
+      },
+      searchMode: settings.search.mode,
       configPath: loaded.configPath,
-      close: () => executor.close().pipe(Effect.ignore),
+      globalSettingsPath: globalExecutorPiConfigPath(),
+      projectSettingsPath: projectExecutorPiConfigPath(scope.scopeDir),
+      close: () =>
+        executor
+          .close()
+          .pipe(Effect.ensuring(Effect.sync(() => searchStore.close())), Effect.ignore),
+      reconcileSearchIndex: () =>
+        reconcileSearchIndex(searchStore, executor, embeddingProvider).pipe(
+          Effect.mapError(mapSearchError),
+          Effect.map((documents) => {
+            searchDocumentCount = documents.length;
+            searchIndexStatus = getSearchIndexStatus(searchStore.db);
+            return searchIndexStatus;
+          }),
+        ),
+      rebuildSearchIndex: () =>
+        rebuildSearchIndex(searchStore, executor, embeddingProvider).pipe(
+          Effect.mapError(mapSearchError),
+          Effect.map((documents) => {
+            searchDocumentCount = documents.length;
+            searchIndexStatus = getSearchIndexStatus(searchStore.db);
+            return searchIndexStatus;
+          }),
+        ),
+      inspectSearchDocument: (path) =>
+        Effect.try({
+          try: () => inspectSearchDocument(searchStore.db, path),
+          catch: mapSearchError,
+        }),
       reload: () => createExecutorHost(options),
     } satisfies ExecutorHost<ExecutionEngine<any>>;
   });

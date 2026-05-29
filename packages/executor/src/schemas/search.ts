@@ -57,6 +57,12 @@ export const SearchDetails = Schema.Struct({
   total: Schema.Number,
   hasMore: Schema.Boolean,
   nextOffset: Schema.NullOr(Schema.Number),
+  searchMode: Schema.optional(
+    Schema.Union([Schema.Literal("executor"), Schema.Literal("fts"), Schema.Literal("hybrid")]),
+  ),
+  indexStatus: Schema.optional(Schema.String),
+  indexedTools: Schema.optional(Schema.Number),
+  indexedEmbeddings: Schema.optional(Schema.Number),
 });
 
 export type SearchDetails = typeof SearchDetails.Type;

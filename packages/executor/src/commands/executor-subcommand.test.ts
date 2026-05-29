@@ -4,6 +4,10 @@ import {
   Config,
   Help,
   Reload,
+  SearchInspect,
+  SearchReconcile,
+  SearchRebuild,
+  SearchStatus,
   Status,
   Unknown,
   parseExecutorSubcommand,
@@ -17,6 +21,13 @@ describe("parseExecutorSubcommand", () => {
     expect(parseExecutorSubcommand("help")._tag).toBe("Help");
     expect(parseExecutorSubcommand("config")._tag).toBe("Config");
     expect(parseExecutorSubcommand("settings")._tag).toBe("Config");
+    expect(parseExecutorSubcommand("search")._tag).toBe("SearchStatus");
+    expect(parseExecutorSubcommand("search status")._tag).toBe("SearchStatus");
+    expect(parseExecutorSubcommand("search reconcile")._tag).toBe("SearchReconcile");
+    expect(parseExecutorSubcommand("search rebuild")._tag).toBe("SearchRebuild");
+    expect(parseExecutorSubcommand("search inspect github.issues.create")).toEqual(
+      SearchInspect({ path: "github.issues.create" }),
+    );
   });
 
   it("returns Unknown for unrecognized tokens", () => {
@@ -29,5 +40,8 @@ describe("parseExecutorSubcommand", () => {
     expect(Config()).toEqual({ _tag: "Config" });
     expect(Status()).toEqual({ _tag: "Status" });
     expect(Reload()).toEqual({ _tag: "Reload" });
+    expect(SearchStatus()).toEqual({ _tag: "SearchStatus" });
+    expect(SearchReconcile()).toEqual({ _tag: "SearchReconcile" });
+    expect(SearchRebuild()).toEqual({ _tag: "SearchRebuild" });
   });
 });

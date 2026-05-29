@@ -206,6 +206,14 @@ const renderSearchResultWithSettings = (
 
   const lines = [
     theme.fg("success", theme.bold(`${details.total} result(s)`)),
+    ...(details.searchMode
+      ? [
+          theme.fg(
+            "dim",
+            `mode=${details.searchMode} index=${details.indexStatus ?? "unknown"} tools=${details.indexedTools ?? "unknown"} embeddings=${details.indexedEmbeddings ?? "unknown"}`,
+          ),
+        ]
+      : []),
     sectionLabel("Tools", theme),
     ...details.items.flatMap((item) => formatSearchItem(item, options, theme)),
   ];

@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { Effect } from "effect";
+import Database from "better-sqlite3";
 
 import { ExecutorHostService } from "../services/executor-host.ts";
 import { createExecutorHost } from "./host.ts";
@@ -14,6 +15,7 @@ interface Fixture {
   readonly projectDir: string;
   readonly dataDir: string;
   readonly previousDataDir: string | undefined;
+  readonly previousAgentDir: string | undefined;
 }
 
 const fixtures = new Set<Fixture>();
@@ -22,17 +24,22 @@ const makeFixture = (): Fixture => {
   const workspace = mkdtempSync(join(tmpdir(), "executor-pi-host-test-"));
   const projectDir = join(workspace, "project");
   const dataDir = join(workspace, "data");
+  const agentDir = join(workspace, "agent");
   const previousDataDir = process.env.EXECUTOR_DATA_DIR;
+  const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
 
   mkdirSync(projectDir, { recursive: true });
   mkdirSync(dataDir, { recursive: true });
+  mkdirSync(agentDir, { recursive: true });
   process.env.EXECUTOR_DATA_DIR = dataDir;
+  process.env.PI_CODING_AGENT_DIR = agentDir;
 
   const fixture = {
     workspace,
     projectDir,
     dataDir,
     previousDataDir,
+    previousAgentDir,
   } satisfies Fixture;
   fixtures.add(fixture);
   return fixture;
@@ -45,6 +52,12 @@ const cleanupFixture = (fixture: Fixture): void => {
     delete process.env.EXECUTOR_DATA_DIR;
   } else {
     process.env.EXECUTOR_DATA_DIR = fixture.previousDataDir;
+  }
+
+  if (fixture.previousAgentDir === undefined) {
+    delete process.env.PI_CODING_AGENT_DIR;
+  } else {
+    process.env.PI_CODING_AGENT_DIR = fixture.previousAgentDir;
   }
 
   rmSync(fixture.workspace, { recursive: true, force: true });
@@ -146,6 +159,18 @@ const writeProjectConfig = (fixture: Fixture): void => {
   );
 };
 
+const countIndexRuns = (path: string): number => {
+  const db = new Database(path, { readonly: true });
+  try {
+    const row = db.prepare("SELECT COUNT(*) AS count FROM search_index_runs").get() as
+      | { readonly count?: unknown }
+      | undefined;
+    return typeof row?.count === "number" ? row.count : 0;
+  } finally {
+    db.close();
+  }
+};
+
 afterEach(() => {
   for (const fixture of fixtures) {
     cleanupFixture(fixture);
@@ -193,6 +218,9 @@ describe.sequential("Executor host contract", () => {
               expect(host.scopeId).toBe(scope.scopeId);
               expect(host.dataDir).toBe(fixture.dataDir);
               expect(host.sqlitePath).toBe(join(fixture.dataDir, "data.db"));
+              expect(host.searchSqlitePath).toBe(join(fixture.dataDir, "pi-executor", "search.db"));
+              expect(host.searchDocumentCount).toBeGreaterThanOrEqual(0);
+              expect(host.searchIndexStatus.status).toBe("completed");
               expect(host.configPath).toBe(join(fixture.projectDir, "executor.jsonc"));
               expect(existsSync(host.sqlitePath)).toBe(true);
 
@@ -204,6 +232,28 @@ describe.sequential("Executor host contract", () => {
             }),
           (host) => host.close(),
         ),
+      ),
+    ),
+  );
+
+  it.effect("does not rebuild a completed search index on host startup", () =>
+    withFixture((fixture) =>
+      silenceExpectedDuplicateWarning(
+        Effect.gen(function* () {
+          writeProjectConfig(fixture);
+
+          const first = yield* createExecutorHost({ cwd: fixture.projectDir });
+          const searchSqlitePath = first.searchSqlitePath;
+          const firstRunCount = countIndexRuns(searchSqlitePath);
+          yield* first.close();
+
+          const second = yield* createExecutorHost({ cwd: fixture.projectDir });
+          const secondRunCount = countIndexRuns(searchSqlitePath);
+          yield* second.close();
+
+          expect(firstRunCount).toBe(1);
+          expect(secondRunCount).toBe(firstRunCount);
+        }),
       ),
     ),
   );
