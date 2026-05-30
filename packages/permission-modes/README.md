@@ -8,12 +8,12 @@ Pi has no native permission system — tool calls run unless an extension gates 
 
 Cycle with **Shift+Tab** (or `/permissions <mode>`):
 
-| Mode | Indicator | Behavior |
-|------|-----------|----------|
-| `default` | `● default` | Read-only tools run freely. Mutating tools (`bash`/`edit`/`write`) are checked against the rules; if nothing allows them, you're prompted. |
-| `acceptEdits` | `✓ accept edits` | File `edit`/`write` auto-apply. `bash` still goes through the rules (so `git commit` still prompts unless allowlisted). |
-| `plan` | `⏸ plan` | All mutating tools are blocked. |
-| `bypass` | `⚠ bypass` | Everything runs, no prompts. Only explicit `deny` rules still block. |
+| Mode          | Indicator        | Behavior                                                                                                                                   |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `default`     | `● default`      | Read-only tools run freely. Mutating tools (`bash`/`edit`/`write`) are checked against the rules; if nothing allows them, you're prompted. |
+| `acceptEdits` | `✓ accept edits` | File `edit`/`write` auto-apply. `bash` still goes through the rules (so `git commit` still prompts unless allowlisted).                    |
+| `plan`        | `⏸ plan`         | All mutating tools are blocked.                                                                                                            |
+| `bypass`      | `⚠ bypass`       | Everything runs, no prompts. Only explicit `deny` rules still block.                                                                       |
 
 The current mode shows in the footer and is restored on resume. Start in a mode with `--permission-mode <mode>`.
 

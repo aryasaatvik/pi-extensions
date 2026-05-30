@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "description": "Pi extension: Claude-Code-style permission modes (Shift+Tab) with a merged allow/deny/ask rule engine",
   "keywords": [
-    "pi-extension",
-    "pi-package",
+    "permission-modes",
     "permissions",
-    "permission-modes"
+    "pi-extension",
+    "pi-package"
   ],
   "license": "MIT",
   "files": [
@@ -14,9 +14,11 @@
     "README.md"
   ],
   "type": "module",
-  "dependencies": {
-    "tree-sitter-bash": "0.25.1",
-    "web-tree-sitter": "0.26.9"
+  "exports": {
+    ".": "./src/index.ts",
+    "./controller": "./src/controller.ts",
+    "./engine": "./src/rules/engine.ts",
+    "./scope": "./src/scope.ts"
   },
   "scripts": {
     "typecheck": "tsgo --noEmit -p tsconfig.json",
@@ -26,15 +28,19 @@
     "format:check": "oxfmt --check src test",
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
   },
+  "dependencies": {
+    "tree-sitter-bash": "0.25.1",
+    "web-tree-sitter": "0.26.9"
+  },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "0.75.4",
-    "@earendil-works/pi-tui": "0.75.4",
-    "@types/node": "^25.0.0",
-    "vitest": "4.1.4"
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*"
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi"
   },
   "pi": {
     "extensions": [

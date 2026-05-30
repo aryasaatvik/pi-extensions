@@ -1,38 +1,17 @@
-import type {
-  ExtensionAPI,
-  ExtensionContext,
-  SessionEntry,
-  ToolCallEvent,
-  ToolCallEventResult,
-} from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext, SessionEntry } from "@earendil-works/pi-coding-agent";
 import { Key } from "@earendil-works/pi-tui";
-import {
-  MUTATING_TOOLS,
-  type PermissionMode,
-  isPermissionMode,
-  modeDisplay,
-  nextMode,
-} from "./modes.ts";
-import { promptForTool } from "./prompt.ts";
-import { analyzeBash, warmBashParser } from "./rules/bash-ast.ts";
-import { type Decision, type RuleSet, type ToolCall, decide } from "./rules/engine.ts";
-import {
-  addAlwaysRule,
-  autoImportIfNeeded,
-  importClaudeRules,
-  loadRuleSet,
-  setAutoImport,
-} from "./rules/sources.ts";
-import { bashScopeRule, pathScopeRule } from "./scope.ts";
-import { SkillTracker } from "./skills.ts";
+import { getSharedController } from "./controller.ts";
+import { type PermissionMode, isPermissionMode, modeDisplay, nextMode } from "./modes.ts";
+import { warmBashParser } from "./rules/bash-ast.ts";
+import { autoImportIfNeeded, importClaudeRules, setAutoImport } from "./rules/sources.ts";
 
 const STATUS_KEY = "permission-mode";
 const MODE_ENTRY = "permission-mode";
 
 export default function permissionModes(pi: ExtensionAPI): void {
-  let mode: PermissionMode = "default";
-  const sessionAllow = new Set<string>();
-  const skills = new SkillTracker();
+  // Shared with any in-process child-agent gating (e.g. @pi-ext/subagents) so
+  // mode + session grants propagate both ways. See controller.ts.
+  const controller = getSharedController();
 
   pi.registerFlag("permission-mode", {
     description: "Initial permission mode: default | acceptEdits | plan | bypass",
@@ -43,19 +22,19 @@ export default function permissionModes(pi: ExtensionAPI): void {
   void warmBashParser();
 
   function updateStatus(ctx: ExtensionContext): void {
-    const d = modeDisplay(mode);
+    const d = modeDisplay(controller.getMode());
     ctx.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg(d.color, `${d.symbol} ${d.label}`));
   }
 
   function setMode(next: PermissionMode, ctx: ExtensionContext, notify = true): void {
-    mode = next;
-    pi.appendEntry(MODE_ENTRY, { mode });
+    controller.setMode(next);
+    pi.appendEntry(MODE_ENTRY, { mode: next });
     updateStatus(ctx);
-    if (notify) ctx.ui.notify(`Permission mode: ${modeDisplay(mode).label}`, "info");
+    if (notify) ctx.ui.notify(`Permission mode: ${modeDisplay(next).label}`, "info");
   }
 
   function cycleMode(ctx: ExtensionContext): void {
-    setMode(nextMode(mode), ctx);
+    setMode(nextMode(controller.getMode()), ctx);
   }
 
   pi.registerShortcut(Key.shift("tab"), {
@@ -84,9 +63,9 @@ export default function permissionModes(pi: ExtensionAPI): void {
         return;
       }
       if (arg === "" || arg === "status") {
-        const skill = skills.getActiveName();
+        const skill = controller.skills.getActiveName();
         ctx.ui.notify(
-          `Permission mode: ${modeDisplay(mode).label}${skill ? ` · skill: ${skill}` : ""}\nShift+Tab to cycle.`,
+          `Permission mode: ${modeDisplay(controller.getMode()).label}${skill ? ` · skill: ${skill}` : ""}\nShift+Tab to cycle.`,
           "info",
         );
         return;
@@ -104,16 +83,18 @@ export default function permissionModes(pi: ExtensionAPI): void {
   });
 
   pi.on("input", async (event) => {
-    skills.onInput(event.text);
+    controller.skills.onInput(event.text);
   });
 
   pi.on("before_agent_start", async (event) => {
-    skills.cacheSkills(event.systemPromptOptions?.skills);
-    skills.resolvePending();
+    controller.skills.cacheSkills(event.systemPromptOptions?.skills);
+    controller.skills.resolvePending();
   });
 
   pi.on("session_start", async (_event, ctx) => {
-    mode = restoreMode(ctx.sessionManager.getEntries()) ?? initialFlagMode(pi) ?? "default";
+    controller.setMode(
+      restoreMode(ctx.sessionManager.getEntries()) ?? initialFlagMode(pi) ?? "default",
+    );
     try {
       const r = autoImportIfNeeded();
       if (r && r.count > 0) {
@@ -125,122 +106,18 @@ export default function permissionModes(pi: ExtensionAPI): void {
     updateStatus(ctx);
   });
 
-  pi.on("tool_call", async (event, ctx): Promise<ToolCallEventResult | undefined> => {
-    const call = await toToolCall(event);
-    const rules = currentRuleSet(ctx);
-    const decision = decide(call, rules);
-    const mutating = MUTATING_TOOLS.has(call.toolName);
-
-    // 1. Explicit deny wins in every mode.
-    if (decision === "deny")
-      return { block: true, reason: `Blocked by a deny rule: ${describe(call)}` };
-
-    // 2. Bypass: allow everything else.
-    if (mode === "bypass") return undefined;
-
-    // 3. Plan: block all mutations.
-    if (mode === "plan") {
-      if (mutating) {
-        return {
-          block: true,
-          reason: `Plan mode is active — ${call.toolName} is blocked. Press Shift+Tab to change mode.`,
-        };
-      }
-      return undefined;
-    }
-
-    // 4. Explicit allow.
-    if (decision === "allow") return undefined;
-
-    // 5. acceptEdits auto-allows file edits (bash still gated below).
-    if (mode === "acceptEdits" && (call.toolName === "edit" || call.toolName === "write"))
-      return undefined;
-
-    // 6. Non-mutating tools with no explicit ask run freely.
-    if (!mutating && decision !== "ask") return undefined;
-
-    // 7. Prompt (explicit ask, or a mutating tool with no allow rule).
-    if (!ctx.hasUI) {
-      return {
-        block: true,
-        reason: `Permission required for ${describe(call)} but no interactive UI is available. Use bypass mode or add an allow rule.`,
-      };
-    }
-
-    const scope = scopeRuleFor(call);
-    const choice = await promptForTool(ctx, promptTitle(call, decision));
-    switch (choice) {
-      case "once":
-        return undefined;
-      case "session":
-        if (scope) sessionAllow.add(scope);
-        return undefined;
-      case "always":
-        if (scope) {
-          sessionAllow.add(scope);
-          try {
-            const file = addAlwaysRule(ctx.cwd, scope);
-            ctx.ui.notify(`Saved allow rule to ${file}`, "info");
-          } catch {
-            ctx.ui.notify("Could not write the permissions file.", "error");
-          }
-        }
-        return undefined;
-      default:
-        return { block: true, reason: `Denied by user: ${describe(call)}` };
-    }
-  });
-
-  function currentRuleSet(ctx: ExtensionContext): RuleSet {
-    const base = loadRuleSet(ctx.cwd);
-    return {
-      allow: [...base.allow, ...skills.getActiveAllow(), ...sessionAllow],
-      deny: base.deny,
-      ask: base.ask,
-    };
-  }
-
-  function scopeRuleFor(call: ToolCall): string | null {
-    if (call.toolName === "bash") return bashScopeRule(call.command ?? "");
-    if (call.toolName === "edit" || call.toolName === "write")
-      return pathScopeRule(call.toolName, call.path);
-    return null;
-  }
-}
-
-async function toToolCall(event: ToolCallEvent): Promise<ToolCall> {
-  const input = event.input as Record<string, unknown>;
-  if (event.toolName === "bash") {
-    const command = String(input.command ?? "");
-    try {
-      const { commands } = await analyzeBash(command);
-      return { toolName: "bash", command, bashCommands: commands };
-    } catch {
-      // Parser unavailable — fail safe: don't auto-allow; deny/ask still apply.
-      return { toolName: "bash", command, bashUnparsed: true };
-    }
-  }
-  const path = (input.path ?? input.file_path) as string | undefined;
-  return { toolName: event.toolName, path };
-}
-
-function describe(call: ToolCall): string {
-  if (call.toolName === "bash") return `bash: ${truncate(call.command ?? "", 80)}`;
-  if (call.path) return `${call.toolName} ${call.path}`;
-  return call.toolName;
-}
-
-function promptTitle(call: ToolCall, decision: Decision | undefined): string {
-  const prefix = decision === "ask" ? "Permission rule asks to confirm" : "Approve";
-  if (call.toolName === "bash")
-    return `${prefix} — run command?\n\n  ${truncate(call.command ?? "", 200)}`;
-  if (call.path) return `${prefix} — ${call.toolName} ${call.path}?`;
-  return `${prefix} — ${call.toolName}?`;
-}
-
-function truncate(s: string, max: number): string {
-  const oneLine = s.replace(/\s+/g, " ").trim();
-  return oneLine.length > max ? `${oneLine.slice(0, max - 1)}…` : oneLine;
+  pi.on("tool_call", (event, ctx) =>
+    controller.check({
+      toolName: event.toolName,
+      input: event.input as Record<string, unknown>,
+      cwd: ctx.cwd,
+      interactive: ctx.hasUI,
+      ui: ctx.ui,
+      // Approve-with-note: steer the note into the current turn so the model
+      // sees it alongside the tool result.
+      sendNote: (text) => pi.sendUserMessage(text, { deliverAs: "steer" }),
+    }),
+  );
 }
 
 function restoreMode(entries: readonly SessionEntry[]): PermissionMode | undefined {
