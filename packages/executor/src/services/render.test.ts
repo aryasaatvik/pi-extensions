@@ -58,7 +58,7 @@ describe("renderSearchResult", () => {
         ...DefaultExecutorSettings,
         search: { ...DefaultExecutorSettings.search, showSourcesFooter: false },
       },
-      Effect.flatMap(RenderService.asEffect(), (render) =>
+      RenderService.use((render) =>
         render.renderSearchResult("/tmp", details, "", {}, theme),
       ),
     );
@@ -99,7 +99,7 @@ describe("renderSearchResult", () => {
 
     const output = renderText(
       runRender(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderSearchResult("/tmp/project", details, "", { expanded: false }, theme),
         ),
       ),
@@ -143,7 +143,7 @@ describe("renderSearchResult", () => {
 
     const output = renderText(
       runRender(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderSearchResult("/tmp/project", details, "", { expanded: true }, theme),
         ),
       ),
@@ -168,7 +168,7 @@ describe("renderExecuteResult", () => {
 
     const callOutput = renderText(
       runRender(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderExecuteCall(
             "/tmp/project",
             { code: "return { value: 1 + 2, source: 'executor-pi-dogfood' };" },
@@ -179,7 +179,7 @@ describe("renderExecuteResult", () => {
     );
     const output = renderText(
       runRender(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderExecuteResult("/tmp/project", details, "", { expanded: false }, theme),
         ),
       ),
@@ -212,7 +212,7 @@ describe("renderExecuteResult", () => {
     const callOutput = renderText(
       runRenderWithSettings(
         settings,
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderExecuteCall("/tmp/project", { code: "const x = 1;\nreturn x;" }, theme),
         ),
       ),
@@ -220,7 +220,7 @@ describe("renderExecuteResult", () => {
     const output = renderText(
       runRenderWithSettings(
         settings,
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderExecuteResult("/tmp/project", details, "", { expanded: true }, theme),
         ),
       ),

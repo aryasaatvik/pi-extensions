@@ -36,7 +36,7 @@ export const makeSearchTool = (
     async execute(toolCallId, params, signal, onUpdate, ctx: ExtensionContext) {
       try {
         const result = await runtime.runPromise(
-          Effect.flatMap(SearchService.asEffect(), (search) =>
+          SearchService.use((search) =>
             search.search({
               input: params,
               ctx,
@@ -59,7 +59,7 @@ export const makeSearchTool = (
     },
     renderCall(args, theme, context) {
       return runtime.runSync(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderSearchCall(context.cwd, args, theme),
         ),
       );
@@ -69,7 +69,7 @@ export const makeSearchTool = (
       const text = content?.type === "text" ? content.text : "";
 
       return runtime.runSync(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderSearchResult(context.cwd, result.details, text, options, theme),
         ),
       );

@@ -35,7 +35,7 @@ export const makeExecuteTool = (
     async execute(toolCallId, params, signal, onUpdate, ctx: ExtensionContext) {
       try {
         const result = await runtime.runPromise(
-          Effect.flatMap(ExecutionService.asEffect(), (execution) =>
+          ExecutionService.use((execution) =>
             execution.execute({
               input: params,
               ctx,
@@ -59,7 +59,7 @@ export const makeExecuteTool = (
     },
     renderCall(args, theme, context) {
       return runtime.runSync(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderExecuteCall(context.cwd, args, theme),
         ),
       );
@@ -69,7 +69,7 @@ export const makeExecuteTool = (
       const text = content?.type === "text" ? content.text : "";
 
       return runtime.runSync(
-        Effect.flatMap(RenderService.asEffect(), (render) =>
+        RenderService.use((render) =>
           render.renderExecuteResult(context.cwd, result.details, text, options, theme),
         ),
       );
