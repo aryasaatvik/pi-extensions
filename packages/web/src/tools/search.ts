@@ -55,7 +55,7 @@ Query tips: describe the ideal page, not keywords. Use category:people / categor
         } satisfies WebSearchInput;
 
         const output = await runtime.runPromise(
-          Effect.flatMap(WebService.asEffect(), (web) => web.search(input, ctx.cwd)),
+          WebService.use((web) => web.search(input, ctx.cwd)),
         );
 
         const compactText = formatSearchMarkdown(output);

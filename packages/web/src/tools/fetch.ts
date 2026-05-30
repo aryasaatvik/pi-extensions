@@ -71,7 +71,7 @@ Returns: Clean text content and metadata from the page(s).`,
         } satisfies WebFetchInput;
 
         const output = await runtime.runPromise(
-          Effect.flatMap(WebService.asEffect(), (web) => web.fetch(input, ctx.cwd)),
+          WebService.use((web) => web.fetch(input, ctx.cwd)),
         );
 
         if (!fetchHasSuccessfulContent(output)) {

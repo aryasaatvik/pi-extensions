@@ -23,24 +23,24 @@
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
   },
   "dependencies": {
-    "effect": "4.0.0-beta.59",
+    "effect": "catalog:",
     "exa-js": "^2.8.0",
     "parallel-web": "^0.5.0"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "0.75.4",
-    "@earendil-works/pi-coding-agent": "0.75.4",
-    "@earendil-works/pi-tui": "0.75.4",
-    "@effect/vitest": "4.0.0-beta.59",
-    "@types/node": "^25.0.0",
-    "typebox": "1.1.38",
-    "vitest": "4.1.4"
+    "@earendil-works/pi-ai": "catalog:pi",
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi",
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "typebox": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
-    "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*",
-    "typebox": "*"
+    "@earendil-works/pi-ai": "catalog:pi",
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi",
+    "typebox": "catalog:"
   },
   "pi": {
     "extensions": [
