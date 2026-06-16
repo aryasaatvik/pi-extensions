@@ -90,12 +90,16 @@ export function createJobs(pi: ExtensionAPI) {
   const global = globalCounter();
   let counter = 0;
 
-  const sessionRunning = (): number =>
-    [...jobs.values()].filter((j) => j.status === "running").length;
+  // Count jobs that still hold a slot — i.e. the run hasn't settled yet. Reading
+  // `released` (flipped only in finish()) rather than `status` keeps cancel()
+  // from eagerly freeing the slot while the child is still draining, which would
+  // otherwise let a following start() exceed maxConcurrentPerSession.
+  const sessionRunning = (): number => [...jobs.values()].filter((j) => !j.released).length;
 
-  // The global slot is held from start() until the underlying run actually
-  // settles — releasing on cancel() (abort request) would free it while the
-  // child is still draining, letting a new start() exceed the global cap.
+  // Both concurrency slots (per-session above, process-wide global below) are
+  // held from start() until the underlying run actually settles. Releasing on
+  // cancel() (abort request) would free them while the child is still draining,
+  // letting a new start() exceed the caps.
   const releaseSlot = (job: Job): void => {
     if (job.released) return;
     job.released = true;
