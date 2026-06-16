@@ -76,5 +76,7 @@ export class TextBuffer {
 
 /** Printable text (incl. pasted runs); excludes control/escape sequences. */
 export function isPrintable(data: string): boolean {
-  return data.length > 0 && !data.startsWith("\x1b") && [...data].every((c) => c >= " ");
+  return (
+    data.length > 0 && !data.startsWith("\x1b") && [...data].every((c) => c >= " " && c !== "\x7f")
+  );
 }

@@ -97,27 +97,24 @@ describe("questionnaire — multi question", () => {
     expect(out).toContain("answer all questions");
   });
 
-  it("Tab navigates between question tabs", () => {
-    const state = makeQuestionnaireState(TWO);
-    const comp = createQuestionnaireComponent(
-      { tui: { requestRender: () => {} }, theme, done: () => {} },
-      TWO,
-    );
-    comp.handleInput?.(KEY.tab); // → Q2
-    // Render reflects Q2 focused; can't read private state, so check the body shows Q2.
-    void state;
-    // Drive: from fresh, Tab to Q2, answer it, Tab back to Q1, answer it, Tab to submit, submit.
+  it("Tab navigates between tabs (forward + wrap) to drive a full submit", () => {
+    // From Q1: Tab→Q2, answer (a) → advance to Submit; Tab wraps Submit→Q1, answer (min)
+    // → advance to Q2; Tab→Submit; Enter submits. Exercises forward Tab nav and the wrap.
     const r = drive(TWO, [
-      KEY.tab, // Q2
-      KEY.enter, // answer Q2 = a, advance to submit
-      KEY.tab, // submit → wraps to Q1
-      KEY.enter, // answer Q1 = min, advance to Q2
-      KEY.tab, // Q2 → submit? from Q2 tab → submit
-      KEY.tab, // submit → wrap Q1... ensure we land on submit eventually
+      KEY.tab, // Q1 → Q2
+      KEY.enter, // answer Q2 = a → advance to Submit
+      KEY.tab, // Submit → wraps to Q1
+      KEY.enter, // answer Q1 = min → advance to Q2
+      KEY.tab, // Q2 → Submit
+      KEY.enter, // all answered → submit
     ]);
-    // We don't assert the exact result here (navigation-heavy); just that no crash.
-    void r;
-    expect(true).toBe(true);
+    expect(r).toEqual({
+      answers: [
+        { id: "scope", selected: ["min"], text: undefined },
+        { id: "approach", selected: ["a"], text: undefined },
+      ],
+      cancelled: false,
+    });
   });
 
   it("renders the tab bar with status markers and a Submit tab", () => {

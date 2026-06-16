@@ -25,7 +25,7 @@ export function renderBox(
   const inner = Math.max(1, innerWidth);
   const border = (s: string) => theme.fg("border", s);
   const top = title
-    ? `┌─ ${title} ${"─".repeat(Math.max(0, inner - visibleWidth(title) - 3))}┐`
+    ? `┌─ ${title} ${"─".repeat(Math.max(0, inner - visibleWidth(title) - 1))}┐`
     : `┌${"─".repeat(inner + 2)}┐`;
   const bottom = `└${"─".repeat(inner + 2)}┘`;
   const lines = [border(top)];
