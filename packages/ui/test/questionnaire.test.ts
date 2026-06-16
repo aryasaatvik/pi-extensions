@@ -152,4 +152,20 @@ describe("questionnaire — notes per question (n / footer)", () => {
       cancelled: false,
     });
   });
+
+  it("a default (tab) note trigger falls back to 'n' so it stays reachable in multi-question mode", () => {
+    // Q1 declares a note with the default trigger (would be "tab"); since Tab
+    // navigates between questions here, the shell must accept "n" instead.
+    const TWO_WITH_NOTE: Question[] = [{ ...TWO[0], freeText: { mode: "note" } }, TWO[1]];
+    // Q1: n + type + Enter (note rides with min, advance to Q2); Q2: Enter (a) →
+    // Submit; Enter submits.
+    const r = drive(TWO_WITH_NOTE, ["n", ..."later".split(""), KEY.enter, KEY.enter, KEY.enter]);
+    expect(r).toEqual({
+      answers: [
+        { id: "scope", selected: ["min"], text: "later" },
+        { id: "approach", selected: ["a"], text: undefined },
+      ],
+      cancelled: false,
+    });
+  });
 });

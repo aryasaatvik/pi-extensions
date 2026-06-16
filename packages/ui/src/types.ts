@@ -31,7 +31,9 @@ export interface ChoiceOption {
  * - `note`: annotate the chosen action with a freeform note. `trigger` is the
  *   key that opens the editor (`tab` annotates the highlighted option inline;
  *   `n` opens a footer "Notes:" editor, matching Claude Code). The note is
- *   returned alongside the selection — the selection still stands.
+ *   returned alongside the selection — the selection still stands. In a
+ *   multi-question questionnaire `tab` (the default) is reserved for moving
+ *   between questions, so the shell falls a note's trigger back to `n` there.
  * - `other`: add a synthetic "Type something" option that, when chosen, opens
  *   an editor; the typed text becomes the answer (no option id).
  */

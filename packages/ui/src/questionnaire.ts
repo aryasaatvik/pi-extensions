@@ -26,23 +26,31 @@ export type QuestionnaireEvent =
   | { type: "submit"; result: QuestionnaireResult }
   | { type: "cancel" };
 
-function questionToSpec(q: Question): ChoiceSpec {
+function questionToSpec(q: Question, isMulti: boolean): ChoiceSpec {
+  // In a multi-question questionnaire Tab is reserved for moving between
+  // questions, so a note's "tab" trigger (also the default) would never reach
+  // the choice engine. Fall it back to "n" there so the note stays reachable.
+  const freeText =
+    isMulti && q.freeText?.mode === "note" && (q.freeText.trigger ?? "tab") === "tab"
+      ? { ...q.freeText, trigger: "n" as const }
+      : q.freeText;
   return {
     title: q.title,
     header: q.header,
     options: q.options,
-    freeText: q.freeText,
+    freeText,
     multiSelect: q.multiSelect,
   };
 }
 
 export function makeQuestionnaireState(questions: Question[]): QuestionnaireState {
+  const isMulti = questions.length > 1;
   return {
     questions,
-    choices: questions.map((q) => makeChoiceState(questionToSpec(q))),
+    choices: questions.map((q) => makeChoiceState(questionToSpec(q, isMulti))),
     answers: new Map<string, Answer>(),
     currentTab: 0,
-    isMulti: questions.length > 1,
+    isMulti,
   };
 }
 
