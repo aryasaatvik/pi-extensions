@@ -1,0 +1,51 @@
+{
+  "name": "@pi-ext/subagents",
+  "version": "0.0.1",
+  "description": "Pi extension: in-process sub-agents (task delegation) with shared permission gating",
+  "keywords": [
+    "agents",
+    "pi-extension",
+    "pi-package",
+    "subagents"
+  ],
+  "license": "MIT",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsgo --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "oxlint src test",
+    "format": "oxfmt src test",
+    "format:check": "oxfmt --check src test",
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
+  },
+  "dependencies": {
+    "@pi-ext/permission-modes": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-agent-core": "catalog:pi",
+    "@earendil-works/pi-ai": "catalog:pi",
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi",
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "typebox": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-agent-core": "catalog:pi",
+    "@earendil-works/pi-ai": "catalog:pi",
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi",
+    "typebox": "catalog:"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}
