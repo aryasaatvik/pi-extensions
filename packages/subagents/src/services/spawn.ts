@@ -179,6 +179,8 @@ export interface SpawnRequest {
   background: boolean;
   /** Hard cap on the returned text, in UTF-8 bytes (from settings.outputCapBytes). */
   outputCapBytes: number;
+  /** Fallback model ("provider/model-id") when neither the call nor the def sets one. */
+  defaultModel?: string;
   onProgress?: (details: SubagentRunDetails) => void;
 }
 
@@ -201,7 +203,11 @@ export async function runSubagent(req: SpawnRequest): Promise<SpawnResult> {
     error,
   });
 
-  const resolved = resolveModel(req.registry, req.parentModel, req.modelOverride ?? req.def.model);
+  const resolved = resolveModel(
+    req.registry,
+    req.parentModel,
+    req.modelOverride ?? req.def.model ?? req.defaultModel,
+  );
   if ("error" in resolved) {
     return { text: resolved.error, isError: true, details: detailsFor("failed", resolved.error) };
   }

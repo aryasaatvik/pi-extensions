@@ -231,6 +231,7 @@ Set background:true for long-running work: you get a task_id immediately and a n
             signal,
             background: false,
             outputCapBytes: settings.outputCapBytes,
+            defaultModel: settings.defaultModel,
             onProgress: (details) =>
               onUpdate?.({ content: [{ type: "text", text: progressText(details) }], details }),
           }),

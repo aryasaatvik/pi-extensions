@@ -172,6 +172,7 @@ export function createJobs(pi: ExtensionAPI) {
         signal: abort.signal,
         background: true,
         outputCapBytes: settings.outputCapBytes,
+        defaultModel: settings.defaultModel,
         onProgress: (details) => {
           job.progress = { ...details, taskId: id };
         },

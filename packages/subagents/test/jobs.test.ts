@@ -9,10 +9,15 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { StartSpec } from "../src/services/jobs.ts";
 import { createJobs } from "../src/services/jobs.ts";
 
-// Control the child run so jobs never spawn a real Agent.
+// Control the child run so jobs never spawn a real Agent; capture each request
+// so we can assert settings are threaded into the SpawnRequest.
 const mockRuns: Array<(result: unknown) => void> = [];
+const mockReqs: Array<{ outputCapBytes: number; defaultModel?: string }> = [];
 vi.mock("../src/services/spawn.ts", () => ({
-  runSubagent: () => new Promise((resolve) => mockRuns.push(resolve)),
+  runSubagent: (req: { outputCapBytes: number; defaultModel?: string }) => {
+    mockReqs.push(req);
+    return new Promise((resolve) => mockRuns.push(resolve));
+  },
 }));
 
 const sent: Array<{ text: string }> = [];
@@ -43,13 +48,19 @@ describe("JobsService background lifecycle", () => {
     mkdirSync(join(cwd, ".pi"), { recursive: true });
     writeFileSync(
       join(cwd, ".pi", "pi-subagents.json"),
-      JSON.stringify({ maxConcurrentPerSession: 1, maxConcurrentGlobal: 5, outputCapBytes: 1000 }),
+      JSON.stringify({
+        maxConcurrentPerSession: 1,
+        maxConcurrentGlobal: 5,
+        outputCapBytes: 1000,
+        defaultModel: "openai/gpt-x",
+      }),
     );
   });
 
   afterAll(() => {
     rmSync(cwd, { recursive: true, force: true });
     mockRuns.length = 0;
+    mockReqs.length = 0;
     sent.length = 0;
   });
 
@@ -62,6 +73,10 @@ describe("JobsService background lifecycle", () => {
 
     const running = await Effect.runPromise(jobs.list());
     expect(running.find((v) => v.id === id1)?.status).toBe("running");
+
+    // Settings must be threaded into the spawn request (output cap + default model).
+    expect(mockReqs[0]?.outputCapBytes).toBe(1000);
+    expect(mockReqs[0]?.defaultModel).toBe("openai/gpt-x");
 
     // per-session cap is 1, so a second concurrent start is rejected.
     const started2 = await Effect.runPromise(jobs.start(spec()));
