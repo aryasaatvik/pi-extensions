@@ -5,6 +5,7 @@ import { listAgents } from "../agents/registry.ts";
 import { curatedModelIds } from "../models.ts";
 import { SubagentsConfigService } from "../services/config.ts";
 import { JobsService } from "../services/jobs.ts";
+import { unknownToolNames } from "../services/spawn.ts";
 
 export interface CommandStatus {
   readonly summary: string;
@@ -53,6 +54,13 @@ export const subagentsCommand = (
     const names = agents
       .map((a) => (a.source === "builtin" ? a.name : `${a.name} (${a.source})`))
       .join(", ");
+    // Surface tool typos in agent defs that would otherwise be silently dropped.
+    const toolWarnings = agents.flatMap((a) => {
+      const unknown = unknownToolNames(a);
+      return unknown.length > 0
+        ? [`  ⚠ ${a.name}: unknown tools ignored — ${unknown.join(", ")}`]
+        : [];
+    });
     const taskLines =
       views.length === 0
         ? "  (none)"
@@ -61,12 +69,13 @@ export const subagentsCommand = (
     return {
       summary: [
         `Sub-agents (${agents.length}): ${names}`,
+        ...toolWarnings,
         `slots: ${settings.maxConcurrentPerSession}/session · ${settings.maxConcurrentGlobal}/global`,
         "tasks:",
         taskLines,
         "/subagents cancel <id|all> to stop background tasks.",
       ].join("\n"),
-      level: "info",
+      level: toolWarnings.length > 0 ? "warning" : "info",
       statusBar: `${running} running`,
     };
   });

@@ -9,6 +9,7 @@ import { Effect, type ManagedRuntime } from "effect";
 
 import { listAgents, resolveAgent } from "../agents/registry.ts";
 import type { AppServices } from "../app/layer.ts";
+import { loadSubagentsSettings } from "../config/store.ts";
 import { type SubagentRunDetails, type SubagentRunStatus, TaskToolInput } from "../schemas/task.ts";
 import { type JobView, JobsService } from "../services/jobs.ts";
 import { SpawnService } from "../services/spawn.ts";
@@ -214,6 +215,7 @@ Set background:true for long-running work: you get a task_id immediately and a n
         };
       }
 
+      const settings = await runtime.runPromise(loadSubagentsSettings(ctx.cwd));
       const result = await runtime.runPromise(
         SpawnService.use((spawn) =>
           spawn.spawn({
@@ -228,6 +230,7 @@ Set background:true for long-running work: you get a task_id immediately and a n
             interactive: ctx.hasUI,
             signal,
             background: false,
+            outputCapBytes: settings.outputCapBytes,
             onProgress: (details) =>
               onUpdate?.({ content: [{ type: "text", text: progressText(details) }], details }),
           }),

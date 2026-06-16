@@ -96,3 +96,73 @@ describe("JobsService background lifecycle", () => {
     expect(canceled).toBe(1);
   });
 });
+
+describe("JobsService global slot accounting", () => {
+  const GLOBAL_KEY = Symbol.for("@pi-ext/subagents.globalRunning");
+  let cwd: string;
+  const spec = (): StartSpec => ({
+    def: {
+      name: "explore",
+      description: "d",
+      tools: ["read"],
+      systemPrompt: "",
+      source: "builtin",
+    },
+    prompt: "p",
+    description: "the thing",
+    cwd,
+    registry: {} as never,
+    parentModel: undefined,
+    ui: {} as never,
+  });
+
+  beforeAll(() => {
+    cwd = mkdtempSync(join(tmpdir(), "subagents-global-"));
+    mkdirSync(join(cwd, ".pi"), { recursive: true });
+    writeFileSync(
+      join(cwd, ".pi", "pi-subagents.json"),
+      JSON.stringify({ maxConcurrentPerSession: 5, maxConcurrentGlobal: 1, outputCapBytes: 1000 }),
+    );
+  });
+
+  afterAll(() => {
+    rmSync(cwd, { recursive: true, force: true });
+    mockRuns.length = 0;
+  });
+
+  it("holds the global slot until the run settles, not at cancel()", async () => {
+    (globalThis as unknown as Record<symbol, { n: number }>)[GLOBAL_KEY] = { n: 0 };
+    mockRuns.length = 0;
+    const jobs = createJobs(piStub);
+
+    expect(await Effect.runPromise(jobs.start(spec()))).toHaveProperty("taskId");
+
+    // cancel() only requests the abort; the child is still draining.
+    expect(await Effect.runPromise(jobs.cancel("all"))).toBe(1);
+
+    // Slot is still held, so a new start is rejected by the global cap — the old
+    // behavior (decrement on cancel) would have wrongly admitted this one.
+    const blocked = await Effect.runPromise(jobs.start(spec()));
+    expect(blocked).toHaveProperty("error");
+    expect((blocked as { error: string }).error).toContain("Global");
+
+    // The run actually settles → the slot is released exactly once.
+    expect(mockRuns).toHaveLength(1);
+    mockRuns[0]?.({
+      text: "late",
+      isError: true,
+      details: {
+        agentType: "explore",
+        description: "the thing",
+        status: "canceled",
+        toolCalls: [],
+        tokens: 0,
+        background: true,
+      },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Freed → a new start now succeeds.
+    expect(await Effect.runPromise(jobs.start(spec()))).toHaveProperty("taskId");
+  });
+});

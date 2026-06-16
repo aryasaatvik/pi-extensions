@@ -42,6 +42,8 @@ interface Job {
   abort: AbortController;
   startedAt: number;
   progress: SubagentRunDetails;
+  /** True once this job's global concurrency slot has been released (exactly once). */
+  released: boolean;
 }
 
 // Process-wide running count for the global concurrency cap (sessions share a process).
@@ -91,13 +93,28 @@ export function createJobs(pi: ExtensionAPI) {
   const sessionRunning = (): number =>
     [...jobs.values()].filter((j) => j.status === "running").length;
 
+  // The global slot is held from start() until the underlying run actually
+  // settles — releasing on cancel() (abort request) would free it while the
+  // child is still draining, letting a new start() exceed the global cap.
+  const releaseSlot = (job: Job): void => {
+    if (job.released) return;
+    job.released = true;
+    global.n = Math.max(0, global.n - 1);
+  };
+
   const finish = (job: Job, result: SpawnResult): void => {
-    if (job.status !== "running") return; // already canceled
+    releaseSlot(job); // the run has actually stopped now → free the global slot
+    if (job.status === "canceled") {
+      // Already canceled by the user: keep the status + skip the notification,
+      // but record the result so operation:"output" can still return it.
+      job.result = result;
+      job.progress = result.details;
+      return;
+    }
     job.result = result;
     job.status =
       result.details.status === "canceled" ? "canceled" : result.isError ? "failed" : "done";
     job.progress = result.details;
-    global.n = Math.max(0, global.n - 1);
     try {
       pi.sendUserMessage(notificationText(job), { deliverAs: "followUp" });
     } catch {
@@ -126,6 +143,7 @@ export function createJobs(pi: ExtensionAPI) {
         status: "running",
         abort,
         startedAt: Date.now(),
+        released: false,
         progress: {
           agentType: spec.def.name,
           description: spec.description,
@@ -153,6 +171,7 @@ export function createJobs(pi: ExtensionAPI) {
         interactive: false,
         signal: abort.signal,
         background: true,
+        outputCapBytes: settings.outputCapBytes,
         onProgress: (details) => {
           job.progress = { ...details, taskId: id };
         },
@@ -191,7 +210,7 @@ export function createJobs(pi: ExtensionAPI) {
         if (target !== "all" && job.id !== target) continue;
         job.abort.abort();
         job.status = "canceled";
-        global.n = Math.max(0, global.n - 1);
+        // Slot is released in finish() when the run actually settles, not here.
         count += 1;
       }
       return count;
@@ -202,7 +221,7 @@ export function createJobs(pi: ExtensionAPI) {
       if (job.status === "running") {
         job.abort.abort();
         job.status = "canceled";
-        global.n = Math.max(0, global.n - 1);
+        // Slot is released in finish() when the run actually settles, not here.
       }
     }
   });

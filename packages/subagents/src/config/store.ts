@@ -35,11 +35,22 @@ const readConfigFile = (path: string): Effect.Effect<Partial<Settings> | undefin
     }).pipe(Effect.option);
     if (Option.isNone(raw)) return undefined;
 
-    const parsed = yield* decodeJson(raw.value).pipe(Effect.option);
+    const parsed = yield* decodeJson(raw.value).pipe(
+      Effect.tapError((cause) =>
+        Effect.logWarning(`Ignoring malformed subagents config at ${path}; using defaults.`, cause),
+      ),
+      Effect.option,
+    );
     if (Option.isNone(parsed)) return undefined;
 
     const value = parsed.value;
-    return typeof value === "object" && value !== null ? (value as Partial<Settings>) : undefined;
+    if (typeof value !== "object" || value === null) {
+      yield* Effect.logWarning(
+        `Ignoring subagents config at ${path}: expected a JSON object, got ${typeof value}.`,
+      );
+      return undefined;
+    }
+    return value as Partial<Settings>;
   });
 
 const writeConfigFile = (

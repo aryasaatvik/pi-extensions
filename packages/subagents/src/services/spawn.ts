@@ -46,16 +46,41 @@ const TOOL_FACTORIES = {
 
 const DEFAULT_TOOL_NAMES = ["read", "bash", "edit", "write", "grep", "find", "ls"];
 
+/** Canonical factory key for a `tools:` entry (strips a `(scope)` suffix, lowercases). */
+function toolKey(name: string): string {
+  return name.split("(")[0]?.trim().toLowerCase() ?? "";
+}
+
+/**
+ * Tool names declared by a def that map to no known factory — i.e. typos or
+ * unsupported tools that would otherwise be silently dropped from the agent.
+ */
+export function unknownToolNames(def: AgentConfig): string[] {
+  return (def.tools ?? []).filter((name) => !TOOL_FACTORIES[toolKey(name)]);
+}
+
 /** Build the child's scoped tool set. The `task` tool is never included (recursion guard). */
 function buildTools(def: AgentConfig, cwd: string): AgentTool<any>[] {
   const names = def.tools ?? DEFAULT_TOOL_NAMES;
   const tools: AgentTool<any>[] = [];
   for (const name of names) {
-    const base = name.split("(")[0]?.trim().toLowerCase() ?? "";
-    const make = TOOL_FACTORIES[base];
+    const make = TOOL_FACTORIES[toolKey(name)];
     if (make) tools.push(make(cwd));
   }
   return tools;
+}
+
+/** Hard-cap text to `maxBytes` UTF-8 bytes (`<= 0` disables), marking any elision. */
+export function capBytes(text: string, maxBytes: number): string {
+  if (maxBytes <= 0) return text;
+  const total = Buffer.byteLength(text, "utf8");
+  if (total <= maxBytes) return text;
+  const marker = `\n…[truncated ${total - maxBytes} bytes over the ${maxBytes}-byte output cap]`;
+  const budget = Math.max(0, maxBytes - Buffer.byteLength(marker, "utf8"));
+  // Buffer#toString may leave a trailing U+FFFD when the budget splits a
+  // multi-byte char; drop it so the kept text stays clean.
+  const kept = Buffer.from(text, "utf8").subarray(0, budget).toString("utf8").replace(/�$/, "");
+  return `${kept}${marker}`;
 }
 
 function buildChildPrompt(def: AgentConfig, cwd: string): string {
@@ -152,6 +177,8 @@ export interface SpawnRequest {
   interactive: boolean;
   signal: AbortSignal | undefined;
   background: boolean;
+  /** Hard cap on the returned text, in UTF-8 bytes (from settings.outputCapBytes). */
+  outputCapBytes: number;
   onProgress?: (details: SubagentRunDetails) => void;
 }
 
@@ -221,10 +248,11 @@ export async function runSubagent(req: SpawnRequest): Promise<SpawnResult> {
   tokens = sumTokens(agent.state.messages);
   const aborted = req.signal?.aborted ?? false;
   const text = finalText(agent.state.messages);
+  const output =
+    text ||
+    (aborted ? "(subagent canceled before producing output)" : "(subagent produced no output)");
   return {
-    text:
-      text ||
-      (aborted ? "(subagent canceled before producing output)" : "(subagent produced no output)"),
+    text: capBytes(output, req.outputCapBytes),
     isError: aborted,
     details: detailsFor(aborted ? "canceled" : "done"),
   };
