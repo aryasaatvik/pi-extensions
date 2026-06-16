@@ -1,0 +1,41 @@
+{
+  "name": "@pi-ext/ui",
+  "version": "0.0.1",
+  "description": "Shared terminal UI primitives for Pi extensions: a reusable choice overlay (option list, multi-select, free-text notes, side-by-side preview) and a multi-question shell",
+  "keywords": [
+    "pi-extension",
+    "pi-package",
+    "tui",
+    "ui"
+  ],
+  "license": "MIT",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./choice": "./src/choice.ts",
+    "./questionnaire": "./src/questionnaire.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "oxlint src test",
+    "format": "oxfmt src test",
+    "format:check": "oxfmt --check src test",
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "catalog:pi",
+    "@earendil-works/pi-tui": "catalog:pi"
+  }
+}
