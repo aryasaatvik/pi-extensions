@@ -7,6 +7,34 @@
   "workspaces": [
     "packages/*"
   ],
+  "packageManager": "bun@1.3.14",
+  "catalog": {
+    "@effect/vitest": "4.0.0-beta.72",
+    "@types/node": "^25.0.0",
+    "effect": "4.0.0-beta.72",
+    "typebox": "1.1.39",
+    "vitest": "4.1.7"
+  },
+  "catalogs": {
+    "pi": {
+      "@earendil-works/pi-ai": "0.78.0",
+      "@earendil-works/pi-agent-core": "0.78.0",
+      "@earendil-works/pi-coding-agent": "0.78.0",
+      "@earendil-works/pi-tui": "0.78.0"
+    },
+    "executor": {
+      "@executor-js/config": "1.4.33",
+      "@executor-js/execution": "1.4.33",
+      "@executor-js/plugin-file-secrets": "1.4.33",
+      "@executor-js/plugin-google-discovery": "1.4.33",
+      "@executor-js/plugin-graphql": "1.4.33",
+      "@executor-js/plugin-keychain": "1.4.33",
+      "@executor-js/plugin-mcp": "1.4.33",
+      "@executor-js/plugin-openapi": "1.4.33",
+      "@executor-js/runtime-quickjs": "1.4.33",
+      "@executor-js/sdk": "1.4.33"
+    }
+  },
   "type": "module",
   "scripts": {
     "prepare": "effect-language-service patch && effect-tsgo patch",
@@ -21,15 +49,16 @@
     "fumadb": "file:packages/executor/vendor/fumadb"
   },
   "devDependencies": {
-    "@effect/language-service": "^0.85.1",
-    "@effect/tsgo": "^0.5.2",
-    "@typescript/native-preview": "7.0.0-dev.20260512.1",
-    "oxfmt": "^0.46.0",
-    "oxlint": "^1.61.0",
+    "@effect/language-service": "^0.86.2",
+    "@effect/tsgo": "^0.13.0",
+    "@typescript/native-preview": "7.0.0-dev.20260527.2",
+    "oxfmt": "^0.52.0",
+    "oxlint": "^1.67.0",
     "typescript": "^6.0.3"
   },
   "overrides": {
-    "fumadb": "file:packages/executor/vendor/fumadb"
+    "fumadb": "file:packages/executor/vendor/fumadb",
+    "effect": "4.0.0-beta.72"
   },
   "engines": {
     "node": ">=22.0.0"

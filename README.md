@@ -12,6 +12,10 @@ root-level TypeScript, lint, and format tooling.
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | [`@pi-ext/web`](./packages/web)           | `web_search` and `web_fetch` tools with a pluggable provider layer. Supports Exa and Parallel.                        |
 | [`@pi-ext/executor`](./packages/executor) | Native Pi extension for Executor search, execution, elicitation, rendering, and project-aware Executor configuration. |
+| [`@pi-ext/kit`](./packages/kit)           | Preset that installs the `ask` tool and permission modes together in one package.                                    |
+| [`@pi-ext/ask`](./packages/ask)           | An `ask` tool letting the model pose multiple-choice questions to the user (mirrors Claude Code's AskUserQuestion).   |
+| [`@pi-ext/permission-modes`](./packages/permission-modes) | Claude-Code-style permission modes (Shift+Tab) with a merged allow/deny/ask rule engine and an approval overlay.      |
+| [`@pi-ext/ui`](./packages/ui)             | Shared terminal UI primitives: a reusable choice overlay (options, multi-select, notes, preview) + a question shell.  |
 
 ## Install In Pi
 
