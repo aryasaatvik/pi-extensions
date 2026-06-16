@@ -98,8 +98,15 @@ Use this to resolve genuine ambiguity, confirm a direction before significant wo
     },
 
     renderCall(args, theme) {
-      const count = args.questions.length;
-      const headers = args.questions.map((q) => q.header).join(", ");
+      // The host invokes this during arg streaming with partially-parsed args
+      // (`questions` may be absent or its entries half-built), so tolerate gaps
+      // and render progressively rather than throwing.
+      const questions = args.questions ?? [];
+      const count = questions.length;
+      const headers = questions
+        .map((q) => q?.header)
+        .filter(Boolean)
+        .join(", ");
       const title = theme.fg("toolTitle", theme.bold("ask"));
       const meta = theme.fg("muted", ` ${count} question${count === 1 ? "" : "s"}`);
       const detail = headers ? theme.fg("dim", ` (${headers})`) : "";
