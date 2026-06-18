@@ -1,5 +1,5 @@
-import { defaultToolDiscoveryProvider } from "@executor-js/execution/core";
-import type { PagedResult, ToolDiscoveryResult } from "@executor-js/execution/core";
+import { defaultToolDiscoveryProvider } from "@executor-js/execution";
+import type { PagedResult, ToolDiscoveryResult } from "@executor-js/execution";
 import { Effect } from "effect";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -424,7 +424,7 @@ const renderMarkdown = (
       evalResult.result.items.forEach((item, index) => {
         lines.push(
           `| ${index + 1} | \`${markdownTableCell(item.path)}\` | ${markdownTableCell(
-            item.sourceId,
+            item.integration,
           )} | ${item.score} | ${markdownTableCell(notesForItem(item))} |`,
         );
       });

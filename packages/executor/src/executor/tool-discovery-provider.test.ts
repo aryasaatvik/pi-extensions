@@ -3,7 +3,7 @@ import {
   createExecutionEngine,
   defaultToolDiscoveryProvider,
   type ToolDiscoveryProvider,
-} from "@executor-js/execution/core";
+} from "@executor-js/execution";
 import { Effect } from "effect";
 
 describe("Executor tool discovery provider patch", () => {
@@ -48,7 +48,7 @@ describe("Executor tool discovery provider patch", () => {
                   path: "custom.result",
                   name: "result",
                   description: "Provided by Pi",
-                  sourceId: "custom",
+                  integration: "custom",
                   score: 42,
                 },
               ],
@@ -91,7 +91,7 @@ describe("Executor tool discovery provider patch", () => {
             path: "custom.result",
             name: "result",
             description: "Provided by Pi",
-            sourceId: "custom",
+            integration: "custom",
             score: 42,
           },
         ],

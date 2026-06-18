@@ -1,11 +1,10 @@
 import { loadPluginsFromJsonc } from "@executor-js/config";
 import type { AnyPlugin } from "@executor-js/sdk/core";
 import { fileSecretsPlugin } from "@executor-js/plugin-file-secrets";
-import { googleDiscoveryPlugin } from "@executor-js/plugin-google-discovery/core";
-import { graphqlPlugin } from "@executor-js/plugin-graphql/core";
+import { graphqlPlugin } from "@executor-js/plugin-graphql";
 import { keychainPlugin } from "@executor-js/plugin-keychain";
-import { mcpPlugin } from "@executor-js/plugin-mcp/core";
-import { openApiPlugin } from "@executor-js/plugin-openapi/core";
+import { mcpPlugin } from "@executor-js/plugin-mcp";
+import { openApiPlugin } from "@executor-js/plugin-openapi";
 import { Effect } from "effect";
 import { join } from "node:path";
 
@@ -17,7 +16,6 @@ const loadStaticPlugins = (): readonly AnyPlugin[] =>
   [
     openApiPlugin(),
     mcpPlugin({ dangerouslyAllowStdioMCP: true }),
-    googleDiscoveryPlugin(),
     graphqlPlugin(),
     keychainPlugin(),
     fileSecretsPlugin(),

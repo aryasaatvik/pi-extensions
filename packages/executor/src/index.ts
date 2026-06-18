@@ -24,9 +24,7 @@ export default function piExecutor(pi: ExtensionAPI): void {
   });
 
   pi.on("session_shutdown", async () => {
-    await runtime.runPromise(
-      ExecutorHostService.use((hosts) => hosts.closeAll),
-    );
+    await runtime.runPromise(ExecutorHostService.use((hosts) => hosts.closeAll));
     await runtime.dispose();
   });
 }

@@ -1,4 +1,4 @@
-import type { ExecutionEngine } from "@executor-js/execution/core";
+import type { ExecutionEngine } from "@executor-js/execution";
 import type { AnyPlugin, Executor } from "@executor-js/sdk/core";
 import { Context, Effect, Layer } from "effect";
 

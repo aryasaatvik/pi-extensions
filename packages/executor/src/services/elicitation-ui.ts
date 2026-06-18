@@ -32,7 +32,7 @@ const hasFormFields = (schema: Record<string, unknown>): boolean => {
 };
 
 const requestTitle = (elicitation: ElicitationContext): string =>
-  `Executor: ${String(elicitation.toolId)}`;
+  `Executor: ${String(elicitation.address)}`;
 
 export class ElicitationUiService extends Context.Service<
   ElicitationUiService,
@@ -67,7 +67,7 @@ export class ElicitationUiService extends Context.Service<
 
           if (Predicate.isTagged(req, "FormElicitation")) {
             if (!hasFormFields(req.requestedSchema)) {
-              const ok = await ctx.ui.confirm(req.message, `Tool: ${String(elicitation.toolId)}`);
+              const ok = await ctx.ui.confirm(req.message, `Tool: ${String(elicitation.address)}`);
               return { action: ok ? "accept" : "decline" };
             }
 

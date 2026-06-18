@@ -68,4 +68,5 @@ cache/reload behavior.
 
 The `verify:host` script is a Node/jiti runtime smoke. It verifies the TypeScript
 host loads through Pi's extension runtime path, native SQLite initializes there,
-execution works there, and the local `fumadb` tarball dependency shape is intact.
+execution works there, and the hybrid search index builds end-to-end with an
+offline embedder (no external embedding server) using `@executor-js/fumadb`.

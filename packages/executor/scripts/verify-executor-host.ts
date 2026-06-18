@@ -5,22 +5,15 @@ import { join } from "node:path";
 import { Effect } from "effect";
 
 import { createExecutorHost } from "../src/executor/index.ts";
+import { makeTestSearchEmbeddingProvider } from "../src/search/test-embeddings.ts";
 
 interface Dependencies {
-  readonly fumadb?: string;
-  readonly [name: string]: string;
-}
-
-interface Overrides {
-  readonly fumadb: string;
   readonly [name: string]: string;
 }
 
 interface PackageJson {
-  readonly dependencies: Dependencies;
-  readonly workspaces?: readonly string[];
-  readonly peerDependencies?: Dependencies;
-  readonly overrides?: Overrides;
+  readonly dependencies?: Dependencies;
+  readonly overrides?: Dependencies;
 }
 
 const assert = (condition: unknown, message: string): void => {
@@ -38,7 +31,15 @@ try {
   mkdirSync(dataDir, { recursive: true });
   process.env.EXECUTOR_DATA_DIR = dataDir;
 
-  const host = await Effect.runPromise(createExecutorHost({ cwd: projectDir }));
+  // Exercise the full hybrid (FTS + vector) index build with a deterministic,
+  // offline embedder so the smoke needs no external embedding server.
+  const host = await Effect.runPromise(
+    createExecutorHost({
+      cwd: projectDir,
+      searchModeOverride: "hybrid",
+      searchEmbedderOverride: makeTestSearchEmbeddingProvider(),
+    }),
+  );
 
   try {
     assert(existsSync(host.sqlitePath), "host must create SQLite storage under Node/jiti");
@@ -61,22 +62,17 @@ try {
   const rootPackage = JSON.parse(
     readFileSync(join(rootDir, "package.json"), "utf8"),
   ) as PackageJson;
-  const fumadbDependency = repoPackage.dependencies.fumadb;
-  const rootFumadbDependency = rootPackage.dependencies.fumadb;
-  const rootFumadbOverride = rootPackage.overrides?.fumadb;
-
-  assert(fumadbDependency === undefined, "executor package must not install a second fumadb copy");
   assert(
-    rootFumadbDependency === "file:packages/executor/vendor/fumadb",
-    "root fumadb dependency must point at the vendored package",
+    repoPackage.dependencies?.["@executor-js/fumadb"] !== undefined,
+    "executor package must depend on @executor-js/fumadb (linked from the selfhost worktree)",
   );
   assert(
-    rootFumadbOverride === "file:packages/executor/vendor/fumadb",
-    "root fumadb override must point at the vendored package",
+    rootPackage.dependencies?.fumadb === undefined && rootPackage.overrides?.fumadb === undefined,
+    "the vendored 'fumadb' dependency/override must be removed (executor uses @executor-js/fumadb)",
   );
   assert(
-    existsSync(join(rootDir, "packages/executor/vendor/fumadb/package.json")),
-    "vendored fumadb package must exist",
+    !existsSync(join(rootDir, "packages/executor/vendor")),
+    "the vendored fumadb directory must be removed",
   );
 
   console.log("Executor host runtime verification passed.");

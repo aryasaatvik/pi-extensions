@@ -146,7 +146,6 @@ errors. Pi callbacks are thin Promise adapters around the Effect runtime.
 Host contract and local package notes live in:
 
 - `docs/executor-host.md`
-- `docs/local-fumadb.md`
 
 ## Non-Goals
 

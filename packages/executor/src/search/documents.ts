@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
 
-import type { Source, Tool } from "@executor-js/sdk/core";
+import type { Integration, Tool } from "@executor-js/sdk/core";
+
+const ADDRESS_PREFIX = "tools.";
+
+/** Strip the `tools.` proxy prefix to get the callable path. */
+const addressToPath = (address: string): string =>
+  address.startsWith(ADDRESS_PREFIX) ? address.slice(ADDRESS_PREFIX.length) : address;
 
 export interface ToolSearchDocument {
   readonly path: string;
@@ -64,30 +70,32 @@ export const projectToolSearchDocument = (
   tool: Tool,
   options?: {
     readonly schema?: ToolSearchSchemaDetails | null;
-    readonly source?: Source;
+    readonly integration?: Integration;
     readonly disabled?: boolean;
   },
 ): ToolSearchDocument => {
+  const path = addressToPath(String(tool.address));
+  const integration = String(tool.integration);
   const schema = options?.schema ?? null;
   const typeDefinitionsJson = stableJson(schema?.typeScriptDefinitions);
   const inputTypeScript = schema?.inputTypeScript ?? null;
   const outputTypeScript = schema?.outputTypeScript ?? null;
   const searchText = joinSearchText([
-    tool.id,
-    tool.sourceId,
+    path,
+    integration,
     tool.pluginId,
-    tool.name,
+    String(tool.name),
     schema?.name,
     schema?.description,
     tool.description,
     inputTypeScript,
     outputTypeScript,
     typeDefinitionsJson,
-    options?.source?.kind,
-    options?.source?.name,
+    options?.integration?.kind,
+    options?.integration?.description,
   ]);
   const embeddingText = joinSearchText([
-    `${tool.id} ${tool.name}`,
+    `${path} ${String(tool.name)}`,
     schema?.description,
     tool.description,
     inputTypeScript,
@@ -95,17 +103,17 @@ export const projectToolSearchDocument = (
     typeDefinitionsJson,
   ]);
   const base = {
-    path: tool.id,
-    sourceId: tool.sourceId,
+    path,
+    sourceId: integration,
     pluginId: tool.pluginId,
-    name: schema?.name ?? tool.name,
+    name: schema?.name ?? String(tool.name),
     description: schema?.description ?? tool.description,
     inputTypeScript,
     outputTypeScript,
     typeDefinitionsJson,
-    sourceKind: options?.source?.kind ?? null,
-    sourceScopeId: options?.source?.scopeId ?? null,
-    sourceRuntime: options?.source?.runtime ?? null,
+    sourceKind: options?.integration?.kind ?? null,
+    sourceScopeId: null,
+    sourceRuntime: null,
     disabled: options?.disabled ?? false,
     searchText,
     embeddingText,

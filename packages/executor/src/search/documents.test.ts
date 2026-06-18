@@ -6,10 +6,12 @@ describe("tool search documents", () => {
   it("projects Executor tool metadata into a stable search document", () => {
     const document = projectToolSearchDocument(
       {
-        id: "github.issues.create",
-        sourceId: "github",
+        address: "tools.github.org.main.issues.create" as never,
+        integration: "github" as never,
+        connection: "main" as never,
+        owner: "org" as never,
         pluginId: "mcp",
-        name: "createIssue",
+        name: "createIssue" as never,
         description: "Create a GitHub issue",
       },
       {
@@ -20,22 +22,19 @@ describe("tool search documents", () => {
           outputTypeScript: "{ id: number; url: string }",
           typeScriptDefinitions: { Issue: "{ id: number }" },
         },
-        source: {
-          id: "github",
-          name: "GitHub",
+        integration: {
+          slug: "github" as never,
+          description: "GitHub",
           kind: "mcp",
-          pluginId: "mcp",
           canRemove: true,
           canRefresh: true,
-          canEdit: false,
-          runtime: true,
-          scopeId: "project-1234",
+          authMethods: [],
         },
       },
     );
 
     expect(document).toMatchObject({
-      path: "github.issues.create",
+      path: "github.org.main.issues.create",
       sourceId: "github",
       pluginId: "mcp",
       name: "createIssue",
@@ -43,11 +42,11 @@ describe("tool search documents", () => {
       inputTypeScript: "{ title: string; body?: string }",
       outputTypeScript: "{ id: number; url: string }",
       sourceKind: "mcp",
-      sourceScopeId: "project-1234",
-      sourceRuntime: true,
+      sourceScopeId: null,
+      sourceRuntime: null,
       disabled: false,
     });
-    expect(document.searchText).toContain("github.issues.create");
+    expect(document.searchText).toContain("github.org.main.issues.create");
     expect(document.searchText).toContain("Create issue with title and body");
     expect(document.embeddingText).toContain("Create issue with title and body");
     expect(document.fingerprint).toMatch(/^[0-9a-f]{64}$/);

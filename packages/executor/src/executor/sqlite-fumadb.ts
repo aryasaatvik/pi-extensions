@@ -1,12 +1,12 @@
-import { fumadb, type FumaDB } from "fumadb";
+import { fumadb, type FumaDB } from "@executor-js/fumadb";
 import {
   createDrizzleRuntimeSchemaFromTables,
   createDrizzleRuntimeSchemaSqlFromTables,
   drizzleAdapter,
-} from "fumadb/adapters/drizzle";
-import { schema as fumaSchema, type RelationsMap } from "fumadb/schema";
-import type { AnyTable } from "fumadb/schema";
-import type { AbstractQuery } from "fumadb/query";
+} from "@executor-js/fumadb/adapters/drizzle";
+import { schema as fumaSchema, type RelationsMap } from "@executor-js/fumadb/schema";
+import type { AnyTable } from "@executor-js/fumadb/schema";
+import type { AbstractQuery } from "@executor-js/fumadb/query";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);

@@ -47,7 +47,7 @@ const indentedLines = (value: string, theme: Theme, prefix = "  "): string[] =>
     .map((line) => theme.fg("dim", `${prefix}${line}`));
 
 const formatSources = (details: SearchDetails): string => {
-  const sources = [...new Set(details.items.map((item) => item.sourceId))].sort();
+  const sources = [...new Set(details.items.map((item) => item.integration))].sort();
   return sources.length === 0 ? "none" : sources.join(", ");
 };
 
@@ -57,7 +57,9 @@ const formatSearchItem = (
   theme: Theme,
 ): string[] => {
   const description = item.details?.description ?? item.description;
-  const lines = [`${theme.fg("toolOutput", item.path)} ${theme.fg("dim", `[${item.sourceId}]`)}`];
+  const lines = [
+    `${theme.fg("toolOutput", item.path)} ${theme.fg("dim", `[${item.integration}]`)}`,
+  ];
 
   if (description) {
     const renderedDescription = options.expanded

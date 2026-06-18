@@ -1,5 +1,5 @@
 import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
-import type { Source } from "@executor-js/sdk/core";
+import type { Integration } from "@executor-js/sdk/core";
 import { Effect, Match, Result } from "effect";
 
 import { runExecutorConfigUi } from "./executor-config.ts";
@@ -27,25 +27,22 @@ const formatPlugins = (host: ExecutorHost): string => {
   return names.length > 0 ? names.join(", ") : "(none)";
 };
 
-const formatSource = (source: Source): string => {
-  const scope = source.scopeId ? ` scope=${source.scopeId}` : "";
+const formatSource = (integration: Integration): string => {
   const flags = [
-    source.runtime ? "runtime" : "static",
-    source.canRefresh ? "refreshable" : undefined,
-    source.canEdit ? "editable" : undefined,
-    source.canRemove ? "removable" : undefined,
+    integration.canRefresh ? "refreshable" : undefined,
+    integration.canRemove ? "removable" : undefined,
   ]
     .filter((flag): flag is string => flag !== undefined)
     .join(", ");
 
-  return `- ${source.id} (${source.kind}, ${source.pluginId}${scope}; ${flags})`;
+  return `- ${integration.slug} (${integration.kind}; ${flags})`;
 };
 
-const formatSources = (sources: readonly Source[]): string => {
+const formatSources = (sources: readonly Integration[]): string => {
   if (sources.length === 0) return "(none)";
 
   const visible = sources
-    .toSorted((left, right) => left.id.localeCompare(right.id))
+    .toSorted((left, right) => String(left.slug).localeCompare(String(right.slug)))
     .slice(0, maxStatusSources)
     .map(formatSource);
   const hidden = sources.length - visible.length;
@@ -65,7 +62,7 @@ const formatSearchStatus = (status: SearchRuntimeStatus): string =>
 
 const formatHostStatus = (
   host: ExecutorHost,
-  sources: readonly Source[],
+  sources: readonly Integration[],
   searchStatus: SearchRuntimeStatus,
 ): string =>
   [
@@ -152,7 +149,7 @@ const runHostSubcommand = (
       };
     }
 
-    const sources = yield* Effect.result(host.success.executor.sources.list());
+    const sources = yield* Effect.result(host.success.executor.integrations.list());
     const searchStatus = yield* Effect.sync(() => probeSearchRuntimeStatus());
 
     if (Result.isFailure(sources)) {

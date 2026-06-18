@@ -59,9 +59,7 @@ export const makeSearchTool = (
     },
     renderCall(args, theme, context) {
       return runtime.runSync(
-        RenderService.use((render) =>
-          render.renderSearchCall(context.cwd, args, theme),
-        ),
+        RenderService.use((render) => render.renderSearchCall(context.cwd, args, theme)),
       );
     },
     renderResult(result, options, theme, context) {

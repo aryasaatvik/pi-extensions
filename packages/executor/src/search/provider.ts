@@ -1,4 +1,4 @@
-import { ExecutionToolError, type ToolDiscoveryProvider } from "@executor-js/execution/core";
+import { ExecutionToolError, type ToolDiscoveryProvider } from "@executor-js/execution";
 import { Effect } from "effect";
 
 import type { SearchEmbeddingProvider } from "./embeddings.ts";
