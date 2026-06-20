@@ -1,5 +1,5 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { formatExecuteResult } from "@executor-js/execution/core";
+import { formatExecuteResult } from "@executor-js/execution";
 import { Context, Effect, Layer } from "effect";
 
 import { ExecutionError } from "../errors.ts";

@@ -3,12 +3,11 @@ import {
   defaultToolDiscoveryProvider,
   type ExecutionEngine,
   type ToolDiscoveryProvider,
-} from "@executor-js/execution/core";
+} from "@executor-js/execution";
 import {
   createExecutor,
   collectTables,
-  Scope,
-  ScopeId,
+  Tenant,
   type AnyPlugin,
   type Executor,
 } from "@executor-js/sdk/core";
@@ -18,7 +17,10 @@ import { Effect } from "effect";
 import { globalExecutorPiConfigPath, projectExecutorPiConfigPath } from "../config/paths.ts";
 import { loadExecutorPiSettings } from "../config/store.ts";
 import { ExecutorHostError } from "../errors.ts";
-import { makeConfiguredSearchEmbeddingProvider } from "../search/embeddings.ts";
+import {
+  makeConfiguredSearchEmbeddingProvider,
+  type SearchEmbeddingProvider,
+} from "../search/embeddings.ts";
 import { rebuildSearchIndex, reconcileSearchIndex } from "../search/indexer.ts";
 import { makeFtsToolDiscoveryProvider } from "../search/provider.ts";
 import {
@@ -39,6 +41,9 @@ const localNamespace = "executor_local";
 export interface CreateExecutorHostOptions {
   readonly cwd: string;
   readonly searchModeOverride?: SearchMode;
+  /** Inject a specific embedder (offline test-hash for smokes/CI). Overrides
+   *  whatever the loaded settings configure. */
+  readonly searchEmbedderOverride?: SearchEmbeddingProvider;
 }
 
 export const createExecutorHost = (
@@ -54,12 +59,14 @@ export const createExecutorHost = (
           search: { ...loadedSettings.search, mode: options.searchModeOverride },
         }
       : loadedSettings;
-    const embeddingProvider = makeConfiguredSearchEmbeddingProvider(settings.search.embeddings);
+    const embeddingProvider =
+      options.searchEmbedderOverride ??
+      makeConfiguredSearchEmbeddingProvider(settings.search.embeddings);
     const loaded = yield* loadExecutorPlugins(scope.scopeDir);
     const sqlite = yield* Effect.tryPromise({
       try: () =>
         createSqliteFumaDb({
-          tables: collectTables(loaded.plugins) as never,
+          tables: collectTables() as never,
           namespace: localNamespace,
           path: storage.sqlitePath,
         }),
@@ -69,14 +76,8 @@ export const createExecutorHost = (
           cause,
         }),
     });
-    const executorScope = Scope.make({
-      id: ScopeId.make(scope.scopeId),
-      name: scope.scopeDir,
-      createdAt: new Date(),
-    });
-
     const executor = yield* createExecutor({
-      scopes: [executorScope],
+      tenant: Tenant.make(scope.scopeId),
       db: {
         db: sqlite.db as never,
         close: sqlite.close,

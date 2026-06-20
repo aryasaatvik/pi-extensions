@@ -18,16 +18,13 @@
   },
   "files": [
     "docs",
-    "src",
-    "vendor"
+    "src"
   ],
   "type": "module",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "deps:pack-fumadb": "bun scripts/pack-local-fumadb.ts",
-    "install:local": "bun run deps:pack-fumadb && bun install",
     "search:eval": "node --import jiti/register src/search/eval-cli.ts",
     "verify:host": "node --import jiti/register scripts/verify-executor-host.ts",
     "typecheck": "tsgo --noEmit",
@@ -36,16 +33,17 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
-    "@executor-js/config": "catalog:executor",
-    "@executor-js/execution": "catalog:executor",
-    "@executor-js/plugin-file-secrets": "catalog:executor",
-    "@executor-js/plugin-google-discovery": "catalog:executor",
-    "@executor-js/plugin-graphql": "catalog:executor",
-    "@executor-js/plugin-keychain": "catalog:executor",
-    "@executor-js/plugin-mcp": "catalog:executor",
-    "@executor-js/plugin-openapi": "catalog:executor",
-    "@executor-js/runtime-quickjs": "catalog:executor",
-    "@executor-js/sdk": "catalog:executor",
+    "@executor-js/config": "link:@executor-js/config",
+    "@executor-js/execution": "link:@executor-js/execution",
+    "@executor-js/fumadb": "link:@executor-js/fumadb",
+    "@executor-js/plugin-file-secrets": "link:@executor-js/plugin-file-secrets",
+    "@executor-js/plugin-graphql": "link:@executor-js/plugin-graphql",
+    "@executor-js/plugin-keychain": "link:@executor-js/plugin-keychain",
+    "@executor-js/plugin-mcp": "link:@executor-js/plugin-mcp",
+    "@executor-js/plugin-openapi": "link:@executor-js/plugin-openapi",
+    "@executor-js/plugin-semantic-search": "link:@executor-js/plugin-semantic-search",
+    "@executor-js/runtime-quickjs": "link:@executor-js/runtime-quickjs",
+    "@executor-js/sdk": "link:@executor-js/sdk",
     "ai": "^6.0.191",
     "better-sqlite3": "^12.10.0",
     "drizzle-orm": "^0.45.0",

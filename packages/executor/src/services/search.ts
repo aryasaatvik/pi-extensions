@@ -1,4 +1,4 @@
-import { defaultToolDiscoveryProvider, describeTool } from "@executor-js/execution/core";
+import { defaultToolDiscoveryProvider, describeTool } from "@executor-js/execution";
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Context, Effect, Layer } from "effect";
 

@@ -45,7 +45,7 @@ export const SearchResultItem = Schema.Struct({
   path: Schema.String,
   name: Schema.String,
   description: Schema.optional(Schema.String),
-  sourceId: Schema.String,
+  integration: Schema.String,
   score: Schema.Number,
   details: Schema.optional(SearchToolDetails),
 });

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import type { PagedResult, ToolDiscoveryResult } from "@executor-js/execution/core";
+import type { PagedResult, ToolDiscoveryResult } from "@executor-js/execution";
 
 import type { ToolSearchDocument } from "./documents.ts";
 import {
@@ -706,7 +706,7 @@ const toToolDiscoveryResult = (row: RankedToolRow): ToolDiscoveryResult => ({
   path: row.path,
   name: row.name,
   description: row.description,
-  sourceId: row.sourceId,
+  integration: row.sourceId,
   score: Math.max(0, Math.round(row.rank * 1_000)),
 });
 

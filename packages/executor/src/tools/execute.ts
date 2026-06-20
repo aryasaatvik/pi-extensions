@@ -59,9 +59,7 @@ export const makeExecuteTool = (
     },
     renderCall(args, theme, context) {
       return runtime.runSync(
-        RenderService.use((render) =>
-          render.renderExecuteCall(context.cwd, args, theme),
-        ),
+        RenderService.use((render) => render.renderExecuteCall(context.cwd, args, theme)),
       );
     },
     renderResult(result, options, theme, context) {

@@ -47,7 +47,7 @@ describe("renderSearchResult", () => {
           path: "tools.github.search",
           name: "search",
           description: "Search GitHub",
-          sourceId: "github",
+          integration: "github",
           score: 1,
         },
       ],
@@ -58,9 +58,7 @@ describe("renderSearchResult", () => {
         ...DefaultExecutorSettings,
         search: { ...DefaultExecutorSettings.search, showSourcesFooter: false },
       },
-      RenderService.use((render) =>
-        render.renderSearchResult("/tmp", details, "", {}, theme),
-      ),
+      RenderService.use((render) => render.renderSearchResult("/tmp", details, "", {}, theme)),
     );
 
     expect(text).not.toContain("Sources");
@@ -75,7 +73,7 @@ describe("renderSearchResult", () => {
         {
           path: "posthog.query_error_tracking_issues_list",
           name: "query_error_tracking_issues_list",
-          sourceId: "posthog",
+          integration: "posthog",
           score: 1,
           description:
             "List and filter Error tracking issues. Returns compact issue rows with aggregate impact counts and optional volume buckets.\n\nUse this first when the user asks which errors are happening.",
@@ -83,7 +81,7 @@ describe("renderSearchResult", () => {
         {
           path: "sentry.search_issues",
           name: "search_issues",
-          sourceId: "sentry",
+          integration: "sentry",
           score: 0.9,
           details: {
             path: "sentry.search_issues",
@@ -127,7 +125,7 @@ describe("renderSearchResult", () => {
         {
           path: "sentry.search_issues",
           name: "search_issues",
-          sourceId: "sentry",
+          integration: "sentry",
           score: 0.9,
           details: {
             path: "sentry.search_issues",

@@ -98,7 +98,7 @@ describe("search store", () => {
             path: "github.issues.create",
             name: "createIssue",
             description: "Create a GitHub issue",
-            sourceId: "github",
+            integration: "github",
           },
         ],
         total: 1,

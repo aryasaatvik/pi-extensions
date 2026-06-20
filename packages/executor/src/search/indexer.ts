@@ -1,4 +1,4 @@
-import { describeTool } from "@executor-js/execution/core";
+import { describeTool } from "@executor-js/execution";
 import { type Executor } from "@executor-js/sdk/core";
 import { Effect } from "effect";
 
@@ -20,16 +20,18 @@ export const collectToolSearchDocuments = (
   executor: Executor,
 ): Effect.Effect<readonly ToolSearchDocument[], ExecutionError> =>
   Effect.gen(function* () {
-    const sources = yield* executor.sources.list().pipe(
+    const integrations = yield* executor.integrations.list().pipe(
       Effect.mapError(
         (cause) =>
           new ExecutionError({
-            message: "Failed to list Executor sources for search indexing.",
+            message: "Failed to list Executor integrations for search indexing.",
             cause,
           }),
       ),
     );
-    const sourceById = new Map(sources.map((source) => [source.id, source]));
+    const integrationBySlug = new Map(
+      integrations.map((integration) => [String(integration.slug), integration]),
+    );
     const tools = yield* executor.tools.list({ includeAnnotations: false }).pipe(
       Effect.mapError(
         (cause) =>
@@ -42,17 +44,17 @@ export const collectToolSearchDocuments = (
 
     return yield* Effect.all(
       tools.map((tool) =>
-        describeTool(executor, tool.id).pipe(
+        describeTool(executor, String(tool.address)).pipe(
           Effect.map((schema) =>
             projectToolSearchDocument(tool, {
               schema,
-              source: sourceById.get(tool.sourceId),
+              integration: integrationBySlug.get(String(tool.integration)),
             }),
           ),
           Effect.mapError(
             (cause) =>
               new ExecutionError({
-                message: `Failed to describe Executor tool ${tool.id} for search indexing.`,
+                message: `Failed to describe Executor tool ${String(tool.address)} for search indexing.`,
                 cause,
               }),
           ),
