@@ -74,16 +74,27 @@ const mapEmbeddingError = (cause: unknown): ExecutionError =>
 
 const makeSearchEmbeddingProvider = (input: {
   readonly provider: SearchEmbeddingProvider["provider"];
+  readonly model: string;
   readonly cacheKey: string;
-  readonly embedder: ToolEmbedder;
+  readonly dimensions: number;
+  readonly makeEmbedder: Effect.Effect<ToolEmbedder, ExecutionError>;
 }): SearchEmbeddingProvider => ({
   provider: input.provider,
-  model: input.embedder.model,
+  model: input.model,
   cacheKey: input.cacheKey,
-  dimensions: input.embedder.dimensions,
+  dimensions: input.dimensions,
   embedDocuments: (texts) =>
-    input.embedder.embedDocuments(texts).pipe(Effect.mapError(mapEmbeddingError)),
-  embedQuery: (text) => input.embedder.embedQuery(text).pipe(Effect.mapError(mapEmbeddingError)),
+    input.makeEmbedder.pipe(
+      Effect.flatMap((embedder) =>
+        embedder.embedDocuments(texts).pipe(Effect.mapError(mapEmbeddingError)),
+      ),
+    ),
+  embedQuery: (text) =>
+    input.makeEmbedder.pipe(
+      Effect.flatMap((embedder) =>
+        embedder.embedQuery(text).pipe(Effect.mapError(mapEmbeddingError)),
+      ),
+    ),
 });
 
 const makeOpenAiCompatibleEmbeddingProvider = (
@@ -91,42 +102,47 @@ const makeOpenAiCompatibleEmbeddingProvider = (
     NonNullable<SearchSettings["embeddings"]>,
     { readonly provider: "openai-compatible" }
   >,
-): Effect.Effect<SearchEmbeddingProvider, ExecutionError> =>
-  loadAuthApiKey(config.authProvider, { required: false }).pipe(
-    Effect.map((apiKey) => {
-      const baseUrl = config.baseUrl.replace(/\/+$/, "");
-      const provider = createOpenAICompatible({
-        name: "openai-compatible",
-        baseURL: baseUrl,
-        apiKey,
-      });
-      return makeSearchEmbeddingProvider({
-        provider: "openai-compatible",
-        cacheKey: `openai-compatible:${baseUrl}:${config.model}`,
-        embedder: makeEmbedder({
+): SearchEmbeddingProvider => {
+  const baseUrl = config.baseUrl.replace(/\/+$/, "");
+  return makeSearchEmbeddingProvider({
+    provider: "openai-compatible",
+    model: config.model,
+    cacheKey: `openai-compatible:${baseUrl}:${config.model}`,
+    dimensions: config.dimensions,
+    makeEmbedder: loadAuthApiKey(config.authProvider, { required: false }).pipe(
+      Effect.map((apiKey) => {
+        const provider = createOpenAICompatible({
+          name: "openai-compatible",
+          baseURL: baseUrl,
+          apiKey,
+        });
+        return makeEmbedder({
           model: provider.textEmbeddingModel(config.model),
           modelId: config.model,
           dimensions: config.dimensions,
           batchSize: config.batchSize ?? defaultBatchSize,
           documentProviderOptions: { "openai-compatible": { dimensions: config.dimensions } },
           queryProviderOptions: { "openai-compatible": { dimensions: config.dimensions } },
-        }),
-      });
-    }),
-  );
+        });
+      }),
+    ),
+  });
+};
 
 const makeGeminiEmbeddingProvider = (
   config: Extract<NonNullable<SearchSettings["embeddings"]>, { readonly provider: "gemini" }>,
-): Effect.Effect<SearchEmbeddingProvider, ExecutionError> => {
+): SearchEmbeddingProvider => {
   const authProvider = config.authProvider ?? "google";
 
-  return requireAuthApiKey(authProvider).pipe(
-    Effect.map((apiKey) => {
-      const provider = createGoogleGenerativeAI({ apiKey });
-      return makeSearchEmbeddingProvider({
-        provider: "gemini",
-        cacheKey: `gemini:${config.model}`,
-        embedder: makeEmbedder({
+  return makeSearchEmbeddingProvider({
+    provider: "gemini",
+    model: config.model,
+    cacheKey: `gemini:${config.model}`,
+    dimensions: config.dimensions,
+    makeEmbedder: requireAuthApiKey(authProvider).pipe(
+      Effect.map((apiKey) => {
+        const provider = createGoogleGenerativeAI({ apiKey });
+        return makeEmbedder({
           model: provider.textEmbedding(config.model),
           modelId: config.model,
           dimensions: config.dimensions,
@@ -144,16 +160,16 @@ const makeGeminiEmbeddingProvider = (
               taskType: queryTaskType,
             },
           },
-        }),
-      });
-    }),
-  );
+        });
+      }),
+    ),
+  });
 };
 
 export const makeConfiguredSearchEmbeddingProvider = (
   config: SearchSettings["embeddings"],
-): Effect.Effect<SearchEmbeddingProvider | null, ExecutionError> => {
-  if (!config) return Effect.succeed(null);
+): SearchEmbeddingProvider | null => {
+  if (!config) return null;
   if (config.provider === "gemini") return makeGeminiEmbeddingProvider(config);
   return makeOpenAiCompatibleEmbeddingProvider(config);
 };
