@@ -325,6 +325,7 @@ describe("search store", () => {
       upsertSearchEmbeddings(store.db, {
         provider: provider.provider,
         model: provider.model,
+        cacheKey: provider.cacheKey,
         dimensions: TestSearchEmbeddingDimensions,
         documents,
         vectors,
@@ -380,6 +381,7 @@ describe("search store", () => {
       upsertSearchEmbeddings(store.db, {
         provider: provider.provider,
         model: provider.model,
+        cacheKey: provider.cacheKey,
         dimensions: TestSearchEmbeddingDimensions,
         documents,
         vectors,
@@ -442,6 +444,7 @@ describe("search store", () => {
       upsertSearchEmbeddings(store.db, {
         provider: provider.provider,
         model: provider.model,
+        cacheKey: provider.cacheKey,
         dimensions: TestSearchEmbeddingDimensions,
         documents,
         vectors,
@@ -474,6 +477,7 @@ describe("search store", () => {
       upsertSearchEmbeddings(first.db, {
         provider: "test-hash",
         model: "test-3",
+        cacheKey: "test-hash:test-3",
         dimensions: 3,
         documents,
         vectors: [[1, 0, 0]],
@@ -497,6 +501,7 @@ describe("search store", () => {
       upsertSearchEmbeddings(second.db, {
         provider: "test-hash",
         model: "test-4",
+        cacheKey: "test-hash:test-4",
         dimensions: 4,
         documents: [
           document({
