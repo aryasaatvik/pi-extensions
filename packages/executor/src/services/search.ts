@@ -60,7 +60,7 @@ export class SearchService extends Context.Service<
                 offset,
               })
             : yield* Effect.gen(function* () {
-                const embeddingProvider = makeConfiguredSearchEmbeddingProvider(
+                const embeddingProvider = yield* makeConfiguredSearchEmbeddingProvider(
                   resolved.settings.search.embeddings,
                 );
                 const store = yield* Effect.sync(() =>

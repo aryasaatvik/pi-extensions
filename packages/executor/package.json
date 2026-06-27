@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai-compatible": "^1.0.39",
     "@executor-js/config": "link:@executor-js/config",
     "@executor-js/execution": "link:@executor-js/execution",
     "@executor-js/fumadb": "link:@executor-js/fumadb",

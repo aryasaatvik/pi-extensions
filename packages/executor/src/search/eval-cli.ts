@@ -297,9 +297,9 @@ const runSearch = (
         ...settings,
         search: { ...settings.search, mode },
       };
-      const embeddingProvider = makeConfiguredSearchEmbeddingProvider(
+      const embeddingProvider = yield* makeConfiguredSearchEmbeddingProvider(
         effectiveSettings.search.embeddings,
-      );
+      ).pipe(Effect.mapError((cause) => new SearchEvalCliError(cause.message, { cause })));
       const warning =
         mode === "hybrid" && embeddingProvider === null
           ? "Hybrid mode has no embedding provider configured; results fall back to FTS."

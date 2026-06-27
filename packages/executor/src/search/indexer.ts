@@ -85,6 +85,7 @@ const indexEmbeddings = (
       try: () => {
         upsertSearchEmbeddings(store.db, {
           provider: embeddingProvider.provider,
+          cacheKey: embeddingProvider.cacheKey,
           model: embeddingProvider.model,
           dimensions: embeddingProvider.dimensions,
           documents: indexedDocuments,

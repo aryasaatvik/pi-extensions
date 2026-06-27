@@ -24,6 +24,7 @@ describe("tool search documents", () => {
         },
         integration: {
           slug: "github" as never,
+          name: "GitHub",
           description: "GitHub",
           kind: "mcp",
           canRemove: true,

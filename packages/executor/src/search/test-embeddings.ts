@@ -36,6 +36,7 @@ export const makeTestSearchEmbeddingProvider = (
 ): SearchEmbeddingProvider => ({
   provider: "test-hash",
   model: `test-hash-v1-${dimensions}`,
+  cacheKey: `test-hash:${dimensions}`,
   dimensions,
   embedDocuments: (texts) => Effect.sync(() => texts.map((text) => embedText(text, dimensions))),
   embedQuery: (text) => Effect.sync(() => embedText(text, dimensions)),

@@ -61,7 +61,15 @@ export const createExecutorHost = (
       : loadedSettings;
     const embeddingProvider =
       options.searchEmbedderOverride ??
-      makeConfiguredSearchEmbeddingProvider(settings.search.embeddings);
+      (yield* makeConfiguredSearchEmbeddingProvider(settings.search.embeddings).pipe(
+        Effect.mapError(
+          (cause) =>
+            new ExecutorHostError({
+              message: cause.message,
+              cause,
+            }),
+        ),
+      ));
     const loaded = yield* loadExecutorPlugins(scope.scopeDir);
     const sqlite = yield* Effect.tryPromise({
       try: () =>

@@ -514,7 +514,7 @@ export const getStaleEmbeddingDocuments = (
 
     return (
       row?.textHash !==
-        searchEmbeddingTextHash(document.embeddingText, provider.model, provider.provider) ||
+        searchEmbeddingTextHash(document.embeddingText, provider.model, provider.cacheKey) ||
       row.model !== provider.model ||
       row.dimensions !== provider.dimensions ||
       typeof row.vectorRowid !== "number"
@@ -526,6 +526,7 @@ export const upsertSearchEmbeddings = (
   db: SearchSqliteDatabase,
   input: {
     readonly provider: SearchEmbeddingProvider["provider"];
+    readonly cacheKey: string;
     readonly model: string;
     readonly dimensions: number;
     readonly documents: readonly Pick<ToolSearchDocument, "path" | "embeddingText">[];
@@ -581,7 +582,7 @@ export const upsertSearchEmbeddings = (
       insertMapping.run(document.path, vectorRowid);
       insertMetadata.run(
         document.path,
-        searchEmbeddingTextHash(document.embeddingText, input.model, input.provider),
+        searchEmbeddingTextHash(document.embeddingText, input.model, input.cacheKey),
         input.model,
         input.dimensions,
         now,
