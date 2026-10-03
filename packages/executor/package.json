@@ -1,6 +1,7 @@
 {
   "name": "@pi-ext/executor",
-  "version": "0.2.0",
+  "version": "1.0.0",
+  "description": "Executor tools for Pi: search and run TypeScript against a hosted Executor's tool catalog.",
   "keywords": [
     "executor",
     "pi-extension",
@@ -17,62 +18,54 @@
     "url": "git+https://github.com/aryasaatvik/pi-extensions.git"
   },
   "files": [
-    "docs",
-    "src"
+    "src",
+    "!src/**/*.test.ts",
+    "!src/testing"
   ],
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./extension": "./src/extension.ts"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "search:eval": "node --import jiti/register src/search/eval-cli.ts",
-    "verify:host": "node --import jiti/register scripts/verify-executor-host.ts",
     "typecheck": "tsgo --noEmit",
     "test": "vitest run",
-    "check": "bun run typecheck && bun run test && bun run verify:host"
+    "smoke": "bun src/smoke.ts",
+    "check": "bun run typecheck && bun run test"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.80",
-    "@ai-sdk/openai-compatible": "^1.0.39",
-    "@executor-js/config": "link:@executor-js/config",
-    "@executor-js/execution": "link:@executor-js/execution",
-    "@executor-js/fumadb": "link:@executor-js/fumadb",
-    "@executor-js/plugin-file-secrets": "link:@executor-js/plugin-file-secrets",
-    "@executor-js/plugin-graphql": "link:@executor-js/plugin-graphql",
-    "@executor-js/plugin-keychain": "link:@executor-js/plugin-keychain",
-    "@executor-js/plugin-mcp": "link:@executor-js/plugin-mcp",
-    "@executor-js/plugin-openapi": "link:@executor-js/plugin-openapi",
-    "@executor-js/plugin-semantic-search": "link:@executor-js/plugin-semantic-search",
-    "@executor-js/runtime-quickjs": "link:@executor-js/runtime-quickjs",
-    "@executor-js/sdk": "link:@executor-js/sdk",
-    "ai": "^6.0.191",
-    "better-sqlite3": "^12.10.0",
-    "drizzle-orm": "^0.45.0",
-    "effect": "catalog:",
-    "oxc-parser": "^0.132.0",
-    "sqlite-vec": "0.1.9"
+    "effect": "catalog:"
   },
   "devDependencies": {
+    "@earendil-works/pi-agent-core": "catalog:pi",
     "@earendil-works/pi-ai": "catalog:pi",
     "@earendil-works/pi-coding-agent": "catalog:pi",
     "@earendil-works/pi-tui": "catalog:pi",
     "@effect/vitest": "catalog:",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "catalog:",
-    "@types/semver": "^7.7.1",
-    "jiti": "^2.7.0",
     "typebox": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "@earendil-works/pi-ai": "catalog:pi",
-    "@earendil-works/pi-coding-agent": "catalog:pi",
-    "@earendil-works/pi-tui": "catalog:pi",
-    "typebox": "catalog:"
+    "@earendil-works/pi-agent-core": "^1.0.0",
+    "@earendil-works/pi-coding-agent": "^1.0.0",
+    "@earendil-works/pi-tui": "^1.0.0",
+    "typebox": "^1.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    }
   },
   "pi": {
     "extensions": [
-      "./src/index.ts"
+      "./src/extension.ts"
     ]
   }
 }
