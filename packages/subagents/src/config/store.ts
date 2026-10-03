@@ -21,7 +21,7 @@ const mergeSettings = (base: Settings, override: Partial<Settings> | undefined):
   };
 };
 
-const decodeJson = Schema.decodeUnknownEffect(Schema.UnknownFromJsonString);
+const decodeJson = Schema.decodeUnknownEffect(Schema.fromJsonString(Schema.Unknown));
 const encodeSettingsJson = Schema.encodeEffect(Schema.fromJsonString(SubagentsSettings));
 
 const readConfigFile = (path: string): Effect.Effect<Partial<Settings> | undefined, never> =>

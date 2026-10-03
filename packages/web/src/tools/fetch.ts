@@ -70,9 +70,7 @@ Returns: Clean text content and metadata from the page(s).`,
           freshness: params.freshness,
         } satisfies WebFetchInput;
 
-        const output = await runtime.runPromise(
-          WebService.use((web) => web.fetch(input, ctx.cwd)),
-        );
+        const output = await runtime.runPromise(WebService.use((web) => web.fetch(input, ctx.cwd)));
 
         if (!fetchHasSuccessfulContent(output)) {
           return {

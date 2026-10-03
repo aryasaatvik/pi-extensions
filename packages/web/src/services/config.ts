@@ -1,4 +1,4 @@
-import { AuthStorage } from "@earendil-works/pi-coding-agent";
+import { readStoredCredential } from "@earendil-works/pi-coding-agent";
 import { Context, Effect, Layer } from "effect";
 
 import {
@@ -22,19 +22,18 @@ export interface ResolvedWebConfig {
   readonly config: WebConfig;
 }
 
-const authKey = (auth: AuthStorage, provider: ProviderId): string | undefined => {
-  const credential = auth.get(provider);
+const authKey = (provider: ProviderId): string | undefined => {
+  const credential = readStoredCredential(provider);
   if (credential?.type !== "api_key") return undefined;
-  const key = credential.key.trim();
-  return key.length > 0 ? key : undefined;
+  const key = credential.key?.trim();
+  return key && key.length > 0 ? key : undefined;
 };
 
 const loadAuth = (settings: WebSettings): WebConfig => {
-  const auth = AuthStorage.create();
   return {
     ...settings,
-    exaApiKey: authKey(auth, "exa"),
-    parallelApiKey: authKey(auth, "parallel"),
+    exaApiKey: authKey("exa"),
+    parallelApiKey: authKey("parallel"),
   };
 };
 

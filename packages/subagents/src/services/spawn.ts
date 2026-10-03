@@ -3,9 +3,8 @@ import {
   type AgentEvent,
   type AgentMessage,
   type AgentTool,
-  type StreamFn,
 } from "@earendil-works/pi-agent-core";
-import { type Model, streamSimple } from "@earendil-works/pi-ai";
+import type { Model } from "@earendil-works/pi-ai";
 import {
   createBashTool,
   createEditTool,
@@ -115,23 +114,6 @@ function resolveModel(
   return { model: parent };
 }
 
-function makeStreamFn(registry: ModelRegistry): StreamFn {
-  // `streamSimple` here is from this package's pinned pi-ai; the Agent's `StreamFn`
-  // type comes from pi-agent-core's patch-newer pi-ai copy. Their
-  // AssistantMessageEventStream classes differ only by a private field, so the cast
-  // bridges a TS-only nominal gap — the stream is consumed purely by async iteration.
-  const fn = async (
-    model: Model<any>,
-    context: Parameters<typeof streamSimple>[1],
-    options: Parameters<typeof streamSimple>[2],
-  ) => {
-    const auth = await registry.getApiKeyAndHeaders(model);
-    if (!auth.ok) throw new Error(auth.error);
-    return streamSimple(model, context, { ...options, apiKey: auth.apiKey, headers: auth.headers });
-  };
-  return fn as unknown as StreamFn;
-}
-
 function finalText(messages: AgentMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i] as { role?: string; content?: unknown };
@@ -218,7 +200,7 @@ export async function runSubagent(req: SpawnRequest): Promise<SpawnResult> {
       model: resolved.model,
       tools: buildTools(req.def, req.cwd),
     },
-    streamFn: makeStreamFn(req.registry),
+    streamFn: (model, context, options) => req.registry.streamSimple(model, context, options),
     beforeToolCall: makeBeforeToolCall({
       cwd: req.cwd,
       ui: req.ui,

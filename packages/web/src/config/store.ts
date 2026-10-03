@@ -31,7 +31,7 @@ const mergeSettings = (
   };
 };
 
-const decodeJson = Schema.decodeUnknownEffect(Schema.UnknownFromJsonString);
+const decodeJson = Schema.decodeUnknownEffect(Schema.fromJsonString(Schema.Unknown));
 const encodeSettingsJson = Schema.encodeEffect(Schema.fromJsonString(WebSettings));
 
 const readConfigFile = (path: string): Effect.Effect<Partial<WebSettingsType> | undefined, never> =>
@@ -91,7 +91,7 @@ export const loadPiWebSettings = (cwd: string): Effect.Effect<WebSettingsType, n
     const project = yield* readConfigFile(projectPiWebConfigPath(cwd));
     const base = mergeSettings(DefaultWebSettings, global);
     return yield* Schema.decodeUnknownEffect(WebSettings)(mergeSettings(base, project)).pipe(
-      Effect.catch(() => Effect.succeed(base)),
+      Effect.orElseSucceed(() => base),
     );
   });
 

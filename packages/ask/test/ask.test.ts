@@ -1,4 +1,4 @@
-import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionToolContext } from "@earendil-works/pi-coding-agent";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { AskToolInput } from "../src/schemas/ask.ts";
@@ -15,7 +15,7 @@ const KEY = {
  * Build a fake ExtensionContext whose `ui.custom` drives the real overlay
  * component with a scripted list of keystrokes and resolves with `done()`.
  */
-function mockCtx(hasUI: boolean, keys: string[]): ExtensionContext {
+function mockCtx(hasUI: boolean, keys: string[]): ExtensionToolContext {
   const ui = {
     custom: async <T>(
       factory: (
@@ -42,7 +42,12 @@ function mockCtx(hasUI: boolean, keys: string[]): ExtensionContext {
       return resolved as T;
     },
   };
-  return { hasUI, ui } as unknown as ExtensionContext;
+  return {
+    hasUI,
+    ui,
+    tools: [],
+    executeTool: async () => ({ content: [], isError: true }),
+  } as unknown as ExtensionToolContext;
 }
 
 const ONE = {
@@ -60,7 +65,7 @@ const ONE = {
 
 const tool = makeAskTool();
 
-async function run(ctx: ExtensionContext, params: unknown) {
+async function run(ctx: ExtensionToolContext, params: unknown) {
   return tool.execute("call-1", params as never, undefined, undefined, ctx);
 }
 

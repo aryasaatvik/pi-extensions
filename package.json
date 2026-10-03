@@ -9,18 +9,18 @@
   ],
   "packageManager": "bun@1.3.14",
   "catalog": {
-    "@effect/vitest": "4.0.0-beta.59",
+    "@effect/vitest": "4.0.0",
     "@types/node": "^25.0.0",
-    "effect": "4.0.0-beta.59",
-    "typebox": "1.1.39",
+    "effect": "4.0.0",
+    "typebox": "1.3.27",
     "vitest": "4.1.7"
   },
   "catalogs": {
     "pi": {
-      "@earendil-works/pi-ai": "0.78.0",
-      "@earendil-works/pi-agent-core": "0.78.0",
-      "@earendil-works/pi-coding-agent": "0.78.0",
-      "@earendil-works/pi-tui": "0.78.0"
+      "@earendil-works/pi-ai": "1.0.0",
+      "@earendil-works/pi-agent-core": "1.0.0",
+      "@earendil-works/pi-coding-agent": "1.0.0",
+      "@earendil-works/pi-tui": "1.0.0"
     }
   },
   "type": "module",
@@ -34,7 +34,7 @@
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
   },
   "devDependencies": {
-    "@effect/language-service": "^0.86.2",
+    "@effect/language-service": "^0.87.3",
     "@effect/tsgo": "^0.13.0",
     "@typescript/native-preview": "7.0.0-dev.20260527.2",
     "oxfmt": "^0.52.0",
