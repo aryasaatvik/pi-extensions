@@ -11,7 +11,7 @@ root-level TypeScript, lint, and format tooling.
 | Package                                   | Description                                                                                                           |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | [`@pi-ext/web`](./packages/web)           | `web_search` and `web_fetch` tools with a pluggable provider layer. Supports Exa and Parallel.                        |
-| [`@pi-ext/executor`](./packages/executor) | Native Pi extension for Executor search, execution, elicitation, rendering, and project-aware Executor configuration. |
+| [`@pi-ext/executor`](./packages/executor) | `executor_search` and `executor_execute`: a typed client and Pi tools for a hosted Executor server.                    |
 | [`@pi-ext/kit`](./packages/kit)           | Preset that installs the `ask` tool and permission modes together in one package.                                    |
 | [`@pi-ext/ask`](./packages/ask)           | An `ask` tool letting the model pose multiple-choice questions to the user (mirrors Claude Code's AskUserQuestion).   |
 | [`@pi-ext/permission-modes`](./packages/permission-modes) | Claude-Code-style permission modes (Shift+Tab) with a merged allow/deny/ask rule engine and an approval overlay.      |
@@ -58,14 +58,10 @@ Use `/web config` in Pi for provider/default settings.
 
 ### `@pi-ext/executor`
 
-Executor project behavior comes from `executor.jsonc` in the active project.
-Pi-specific display and render settings live in:
-
-- Global: `~/.pi/agent/executor-pi.json`
-- Project override: `.pi/executor-pi.json`
-
-Use `/executor config` in Pi to edit display density, search defaults, and render
-limits.
+Set `EXECUTOR_BASE_URL`, plus the Cloudflare Access token
+(`EXECUTOR_CLIENT_ID[_FILE]`, `EXECUTOR_CLIENT_SECRET[_FILE]`) when the server
+sits behind Access. See [the package README](./packages/executor/README.md).
+Use `/executor` in Pi to check the connection.
 
 ## Development
 

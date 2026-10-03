@@ -1,30 +1,28 @@
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Effect } from "effect";
-
-import { executorStatusCommand } from "./commands/executor.ts";
-import { makeRuntime } from "./app/runtime.ts";
-import { ExecutorHostService } from "./services/executor-host.ts";
-import { makeExecuteTool } from "./tools/execute.ts";
-import { makeSearchTool } from "./tools/search.ts";
-
-export default function piExecutor(pi: ExtensionAPI): void {
-  const runtime = makeRuntime(pi);
-
-  pi.registerTool(makeSearchTool(runtime));
-  pi.registerTool(makeExecuteTool(runtime));
-
-  pi.registerCommand("executor", {
-    description: "Inspect and manage the executor extension",
-    handler: async (args, ctx) => {
-      const status = await runtime.runPromise(executorStatusCommand(args, ctx));
-
-      ctx.ui.notify(status.summary, status.level);
-      ctx.ui.setStatus("executor", status.statusBar);
-    },
-  });
-
-  pi.on("session_shutdown", async () => {
-    await runtime.runPromise(ExecutorHostService.use((hosts) => hosts.closeAll));
-    await runtime.dispose();
-  });
-}
+export * as ExecutorClient from "./client.ts";
+export {
+  ExecutorApprovalError,
+  ExecutorConfigError,
+  ExecutorDecodeError,
+  ExecutorRequestError,
+  ExecutorResumeLimitError,
+  type ExecutorError,
+} from "./errors.ts";
+export type { ApprovalDecider, ApprovalPolicy, ApprovalRequest } from "./policy.ts";
+export type {
+  CompletedOutcome,
+  Interaction,
+  ResumeAction,
+  ResumeAnswer,
+  SearchItem,
+  ToolCall,
+} from "./schemas.ts";
+export {
+  executorTools,
+  type ApprovalRecord,
+  type ExecuteDetails,
+  type ExecutorToolsOptions,
+  type ExecutorTraceRecord,
+  type ExecutorTraceSink,
+  type SearchDetails,
+  type SearchHit,
+} from "./tools.ts";

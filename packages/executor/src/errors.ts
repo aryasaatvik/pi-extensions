@@ -1,52 +1,64 @@
-import { Data } from "effect";
+import { Schema } from "effect";
 
-const maxCauseDepth = 6;
+/** The Executor connection settings are missing or unreadable. */
+export class ExecutorConfigError extends Schema.TaggedError<ExecutorConfigError>()(
+  "ExecutorConfigError",
+  {
+    message: Schema.String,
+  },
+) {}
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object";
+/**
+ * An Executor HTTP call failed before a decodable response arrived: transport
+ * failure, timeout, or a non-2xx status. `body` holds the server's error
+ * payload when there was one (Executor errors are tagged JSON such as
+ * `{"_tag":"ApprovalExpiredError",...}`).
+ */
+export class ExecutorRequestError extends Schema.TaggedError<ExecutorRequestError>()(
+  "ExecutorRequestError",
+  {
+    method: Schema.String,
+    path: Schema.String,
+    status: Schema.optional(Schema.Number),
+    body: Schema.optional(Schema.String),
+    message: Schema.String,
+  },
+) {}
 
-const causeOf = (value: unknown): unknown => (isObject(value) ? value.cause : undefined);
+/** Executor answered 2xx with a payload this package does not understand. */
+export class ExecutorDecodeError extends Schema.TaggedError<ExecutorDecodeError>()(
+  "ExecutorDecodeError",
+  {
+    path: Schema.String,
+    message: Schema.String,
+  },
+) {}
 
-const messageOf = (value: unknown): string => {
-  if (value instanceof Error) return value.message;
-  if (isObject(value) && typeof value.message === "string") return value.message;
-  return String(value);
-};
-
-export const formatErrorWithCauses = (error: unknown): string => {
-  const lines: string[] = [];
-  let current: unknown = error;
-
-  for (let depth = 0; current !== undefined && depth < maxCauseDepth; depth += 1) {
-    const message = messageOf(current);
-    lines.push(depth === 0 ? message : `Caused by: ${message}`);
-    current = causeOf(current);
+/** An execution kept pausing past the resume budget for one tool call. */
+export class ExecutorResumeLimitError extends Schema.TaggedError<ExecutorResumeLimitError>()(
+  "ExecutorResumeLimitError",
+  {
+    executionId: Schema.String,
+    resumes: Schema.Number,
+  },
+) {
+  override get message(): string {
+    return `Execution ${this.executionId} was still paused after ${this.resumes} approvals.`;
   }
+}
 
-  return lines.join("\n");
-};
+/** The approval policy threw while answering a paused execution. */
+export class ExecutorApprovalError extends Schema.TaggedError<ExecutorApprovalError>()(
+  "ExecutorApprovalError",
+  {
+    executionId: Schema.String,
+    address: Schema.String,
+    cause: Schema.Defect(),
+  },
+) {
+  override get message(): string {
+    return `Approval policy failed for ${this.address} (execution ${this.executionId}): ${String(this.cause)}`;
+  }
+}
 
-export class ConfigError extends Data.TaggedError("ConfigError")<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
-export class ExecutorHostError extends Data.TaggedError("ExecutorHostError")<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
-export class ExecutionError extends Data.TaggedError("ExecutionError")<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
-export class ElicitationUiError extends Data.TaggedError("ElicitationUiError")<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
-export class RenderError extends Data.TaggedError("RenderError")<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
+export type ExecutorError = ExecutorRequestError | ExecutorDecodeError;
