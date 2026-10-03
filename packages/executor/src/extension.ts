@@ -16,7 +16,7 @@ import { Text } from "@earendil-works/pi-tui";
 import { Effect, Exit } from "effect";
 
 import * as ExecutorClient from "./client.ts";
-import type { ApprovalPolicy, ApprovalRequest } from "./policy.ts";
+import type { ApprovalDecider, ApprovalRequest } from "./policy.ts";
 import type { ResumeAnswer } from "./schemas.ts";
 import {
   EXECUTE_TOOL,
@@ -72,8 +72,8 @@ const parseFormContent = (input: string): Record<string, unknown> => {
 const ONCE = "This call only";
 
 /** Ask the person at the terminal; without a UI, decline. */
-const interactivePolicy =
-  (ctx: ExtensionContext): ApprovalPolicy =>
+export const interactivePolicy =
+  (ctx: ExtensionContext): ApprovalDecider =>
   async (request): Promise<ResumeAnswer> => {
     if (!ctx.hasUI) return { action: "decline" };
     const title = `Executor: ${request.address}`;
@@ -102,14 +102,17 @@ const interactivePolicy =
     }
 
     const scopes = offeredPersistence(request);
-    const persist =
-      scopes.length === 0
-        ? undefined
-        : await ctx.ui.select("Remember this approval?", [ONCE, ...scopes]);
+    let persist: string | undefined;
+    if (scopes.length > 0) {
+      const choice = await ctx.ui.select("Remember this approval?", [ONCE, ...scopes]);
+      // Dismissing this prompt is not consent; only an explicit choice accepts.
+      if (choice === undefined) return { action: "cancel" };
+      if (choice !== ONCE) persist = choice;
+    }
     return {
       action: "accept",
       ...(content === undefined ? {} : { content }),
-      ...(persist === undefined || persist === ONCE ? {} : { persist }),
+      ...(persist === undefined ? {} : { persist }),
     };
   };
 

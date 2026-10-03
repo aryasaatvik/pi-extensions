@@ -19,10 +19,10 @@ export interface ApprovalRequest extends Interaction {
  * `"decline"` and `"accept"` answer every request the same way; a function
  * decides per request and may return form `content` or a `persist` scope.
  */
-export type ApprovalPolicy =
-  | "decline"
-  | "accept"
-  | ((request: ApprovalRequest) => Promise<ResumeAction | ResumeAnswer>);
+export type ApprovalPolicy = "decline" | "accept" | ApprovalDecider;
+
+/** Answers one paused execution. */
+export type ApprovalDecider = (request: ApprovalRequest) => Promise<ResumeAction | ResumeAnswer>;
 
 export const decide = (
   policy: ApprovalPolicy,

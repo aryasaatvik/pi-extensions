@@ -262,17 +262,21 @@ export interface ExecuteOutcome {
   readonly approvals: ReadonlyArray<ApprovalRecord>;
 }
 
-/** Run code and answer every pause through `policy` until it completes. */
+/**
+ * Run code and answer every pause through `policy` until it completes.
+ * `approvals` receives each answer as it is given, so a caller can still
+ * report them when a later resume fails.
+ */
 export const execute = (
   client: ExecutorClient.Interface,
   code: string,
   policy: ApprovalPolicy,
+  approvals: Array<ApprovalRecord> = [],
 ): Effect.Effect<
   ExecuteOutcome,
   ExecutorError | ExecutorResumeLimitError | ExecutorApprovalError
 > =>
   Effect.gen(function* () {
-    const approvals: ApprovalRecord[] = [];
     let response = yield* client.execute(code);
     while (response.status === "paused") {
       const { executionId, expiresAt, interaction } = response.structured;
@@ -306,11 +310,17 @@ const outcomeValue = (outcome: CompletedOutcome): unknown => {
   }
 };
 
-export const executeText = ({ execution, approvals }: ExecuteOutcome): string => {
+export const executeText = ({
+  approvals,
+  text,
+}: {
+  readonly approvals: ReadonlyArray<ApprovalRecord>;
+  readonly text: string;
+}): string => {
   const answered = approvals.map(
     (approval) => `Approval ${approval.action}: ${approval.address} — ${approval.message}`,
   );
-  return answered.length === 0 ? execution.text : [...answered, "", execution.text].join("\n");
+  return answered.length === 0 ? text : [...answered, "", text].join("\n");
 };
 
 // ---------------------------------------------------------------------------
@@ -375,9 +385,11 @@ export const runExecute = async (
   signal: AbortSignal | undefined,
 ): Promise<AgentToolResult<ExecuteDetails>> => {
   const started = performance.now();
-  const exit = await Effect.runPromiseExit(execute(options.client, params.code, options.policy), {
-    signal,
-  });
+  const answered: ApprovalRecord[] = [];
+  const exit = await Effect.runPromiseExit(
+    execute(options.client, params.code, options.policy, answered),
+    { signal },
+  );
   const durationMs = Math.round(performance.now() - started);
   if (Exit.isSuccess(exit)) {
     const { execution, approvals } = exit.value;
@@ -391,7 +403,7 @@ export const runExecute = async (
       durationMs,
     });
     return {
-      content: [{ type: "text", text: executeText(exit.value) }],
+      content: [{ type: "text", text: executeText({ approvals, text: execution.text }) }],
       details: {
         outcome: execution.structured,
         approvals,
@@ -406,12 +418,17 @@ export const runExecute = async (
     code: params.code,
     result: message,
     isError: true,
-    approvals: [],
+    approvals: answered,
     durationMs,
   });
   return {
-    content: [{ type: "text", text: `Executor execution failed: ${message}` }],
-    details: { approvals: [] },
+    content: [
+      {
+        type: "text",
+        text: executeText({ approvals: answered, text: `Executor execution failed: ${message}` }),
+      },
+    ],
+    details: { approvals: answered },
     isError: true,
   };
 };

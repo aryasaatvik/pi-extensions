@@ -203,12 +203,17 @@ describe("executor_execute", () => {
   it("stops after the resume budget", async () => {
     server.route("POST /api/executions", () => ({ body: paused("loop") }));
     server.route("POST /api/executions/loop/resume", () => ({ body: paused("loop") }));
-    const { execute } = tools("accept");
+    const { execute, trace } = tools("accept");
 
     const result = await execute.execute("call-1", { code: "x" });
 
     expect(result.isError).toBe(true);
     expect(text(result)).toContain("still paused after 20 approvals");
+    // Approvals answered before the failure are still reported.
+    expect(result.details.approvals).toHaveLength(20);
+    expect(trace[0]).toMatchObject({ isError: true });
+    expect(trace[0]?.kind === "execute" && trace[0].approvals).toHaveLength(20);
+    expect(text(result)).toContain("Approval accept: tools.github_api.org.acme.issues.create");
   });
 
   it("does not retry a failed execution request", async () => {

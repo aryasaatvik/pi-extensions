@@ -7,7 +7,7 @@ export {
   ExecutorResumeLimitError,
   type ExecutorError,
 } from "./errors.ts";
-export type { ApprovalPolicy, ApprovalRequest } from "./policy.ts";
+export type { ApprovalDecider, ApprovalPolicy, ApprovalRequest } from "./policy.ts";
 export type {
   CompletedOutcome,
   Interaction,
