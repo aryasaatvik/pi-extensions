@@ -15,7 +15,8 @@
   "author": "Saatvik Arya <aryasaatvik@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aryasaatvik/pi-extensions.git"
+    "url": "git+https://github.com/aryasaatvik/pi-extensions.git",
+    "directory": "packages/executor"
   },
   "files": [
     "src",
