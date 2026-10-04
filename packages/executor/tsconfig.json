@@ -20,6 +20,6 @@
       }
     ]
   },
-  "include": ["src/**/*", "oxlint.config.ts", "oxfmt.config.ts"],
+  "include": ["src/**/*", "oxlint.config.ts", "oxfmt.config.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

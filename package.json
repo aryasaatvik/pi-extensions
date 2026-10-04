@@ -15,7 +15,7 @@
     "lint": "oxlint packages",
     "format": "oxfmt packages scripts .github .tegami package.json README.md tsconfig.scripts.json",
     "format:check": "oxfmt --check packages scripts .github .tegami package.json README.md tsconfig.scripts.json",
-    "check": "bun run --filter @pi-ext/executor build && bun run typecheck && bun run lint && bun run format:check && bun run test",
+    "check": "bun run --filter @pi-ext/executor check:package && bun run typecheck && bun run lint && bun run format:check && bun run test",
     "tegami": "bun scripts/tegami.mts",
     "version:packages": "bun run tegami version",
     "release:check": "bun run check",

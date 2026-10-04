@@ -43,7 +43,8 @@
     "smoke": "bun src/smoke.ts",
     "check": "bun run typecheck && bun run test",
     "build": "tsdown",
-    "prepack": "bun run build"
+    "prepack": "bun run build",
+    "check:package": "bun scripts/check-package.ts"
   },
   "dependencies": {
     "effect": "catalog:"
