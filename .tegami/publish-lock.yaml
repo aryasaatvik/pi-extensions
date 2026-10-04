@@ -1,4 +1,14 @@
-# Tegami requires a publish lock even for an unpublished current version.
+core:changelogs:
+  - content: "---\npackages:\n  \"@pi-ext/executor\":\n    type: patch\n---\n\n## Ship compiled JavaScript and type declarations so consumers typecheck without allowImportingTsExtensions.\n"
+    filename: executor-dist.md
+    v: 0.0.0
 core:packages:
-  - id: npm:@pi-ext/executor
+  - id: npm:pi-extensions
+    updated: false
+  - changelogIds:
+      - executor-dist.md
+    id: npm:@pi-ext/executor
     updated: true
+npm:packages:
+  - id: npm:pi-extensions
+  - id: npm:@pi-ext/executor
