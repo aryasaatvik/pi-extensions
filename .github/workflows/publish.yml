@@ -22,6 +22,7 @@ jobs:
     name: Version and publish
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       id-token: write
       pull-requests: write
@@ -50,6 +51,20 @@ jobs:
         run: bun run release:check && bun run tegami ci
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Check version branch
+        if: github.event_name != 'workflow_dispatch' || inputs.dry_run != true
+        run: |
+          if git ls-remote --exit-code --heads origin refs/heads/tegami/version-packages > /dev/null; then
+            gh workflow run ci.yml --ref tegami/version-packages
+          else
+            status=$?
+            if [ "$status" -ne 2 ]; then
+              exit "$status"
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Validate publish lock (dry run)
         if: github.event_name == 'workflow_dispatch' && inputs.dry_run == true

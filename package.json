@@ -10,11 +10,11 @@
   "type": "module",
   "scripts": {
     "prepare": "effect-language-service patch && effect-tsgo patch",
-    "typecheck": "bun run --filter './packages/*' typecheck",
+    "typecheck": "tsgo --noEmit -p tsconfig.scripts.json && bun run --filter './packages/*' typecheck",
     "test": "bun run --filter './packages/*' test",
     "lint": "oxlint packages",
-    "format": "oxfmt packages scripts .github .tegami package.json README.md",
-    "format:check": "oxfmt --check packages scripts .github .tegami package.json README.md",
+    "format": "oxfmt packages scripts .github .tegami package.json README.md tsconfig.scripts.json",
+    "format:check": "oxfmt --check packages scripts .github .tegami package.json README.md tsconfig.scripts.json",
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test",
     "tegami": "bun scripts/tegami.mts",
     "version:packages": "bun run tegami version",
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@effect/language-service": "^0.87.3",
     "@effect/tsgo": "^0.13.0",
+    "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260527.2",
     "oxfmt": "^0.52.0",
     "oxlint": "^1.67.0",

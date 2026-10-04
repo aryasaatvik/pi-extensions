@@ -7,6 +7,7 @@
       "devDependencies": {
         "@effect/language-service": "^0.87.3",
         "@effect/tsgo": "^0.13.0",
+        "@types/node": "catalog:",
         "@typescript/native-preview": "7.0.0-dev.20260527.2",
         "oxfmt": "^0.52.0",
         "oxlint": "^1.67.0",

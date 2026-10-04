@@ -105,6 +105,8 @@ to add an interactive release note under `.tegami/`, then commit it with the cha
 Merging to `main` runs checks and opens the `tegami/version-packages` version PR.
 Merging that PR publishes with npm provenance, creates the per-package tag
 (e.g. `@pi-ext/executor@1.0.1`), and creates its GitHub release.
+Because `GITHUB_TOKEN` creates and updates the version PR without triggering PR workflows,
+Publish explicitly dispatches CI for the existing version branch so its head SHA gets checks.
 GitHub Actions must be allowed to create pull requests in the repository settings.
 
 `bun run version:packages` versions locally; `bun run release` checks and publishes
