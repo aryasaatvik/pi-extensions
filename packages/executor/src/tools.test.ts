@@ -94,6 +94,54 @@ describe("executor_search", () => {
     expect(text(result)).toContain("Types:\ntype Issue = { id: number; user: User }");
   });
 
+  it("treats null schema previews as absent", async () => {
+    server.route("GET /api/semantic-search/search", () => ({
+      body: { namespace: "default", query: "q", items: [hit] },
+    }));
+    // MCP-backed tools: the server has no TypeScript preview and sends nulls.
+    server.route("GET /api/tools/schema", (request) => ({
+      body: {
+        address: request.query.get("address"),
+        name: null,
+        description: null,
+        inputTypeScript: "{ keyword: string }",
+        outputTypeScript: null,
+        typeScriptDefinitions: null,
+        schemaDefinitions: null,
+      },
+    }));
+    const { search } = tools();
+
+    const result = await search.execute("call-1", { query: "q", includeDetails: true });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.details.items).toEqual([{ ...hit, inputTypeScript: "{ keyword: string }" }]);
+    expect(text(result)).toContain("  input: { keyword: string }");
+  });
+
+  it("keeps the other hits when one schema cannot be read", async () => {
+    const other = { ...hit, path: "github_api.org.acme.issues.get", name: "issues.get" };
+    server.route("GET /api/semantic-search/search", () => ({
+      body: { namespace: "default", query: "q", items: [hit, other] },
+    }));
+    server.route("GET /api/tools/schema", (request) =>
+      request.query.get("address") === `tools.${other.path}`
+        ? { status: 404, body: { _tag: "ToolNotFoundError" } }
+        : { body: { address: request.query.get("address"), inputTypeScript: "{ owner: string }" } },
+    );
+    const { search } = tools();
+
+    const result = await search.execute("call-1", { query: "q", includeDetails: true });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.details.items[0]).toEqual({ ...hit, inputTypeScript: "{ owner: string }" });
+    expect(result.details.items[1]).toEqual({
+      ...other,
+      detailsError: expect.stringContaining("404"),
+    });
+    expect(text(result)).toContain("  types unavailable: ");
+  });
+
   it("reports a server error as an error result and records it", async () => {
     server.route("GET /api/semantic-search/search", () => ({
       status: 500,

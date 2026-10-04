@@ -19,14 +19,20 @@ export const SearchResponse = Schema.Struct({
   items: Schema.Array(SearchItem),
 });
 
-/** The fields of `GET /api/tools/schema` this package reads. */
+/**
+ * The fields of `GET /api/tools/schema` this package reads. The server sends
+ * `null` for a missing preview (MCP tools have no TypeScript definitions), so
+ * every optional field also accepts `null`.
+ */
 export const ToolSchemaView = Schema.Struct({
   address: Schema.String,
-  name: Schema.optional(Schema.String),
-  description: Schema.optional(Schema.String),
-  inputTypeScript: Schema.optional(Schema.String),
-  outputTypeScript: Schema.optional(Schema.String),
-  typeScriptDefinitions: Schema.optional(Schema.Record(Schema.String, Schema.String)),
+  name: Schema.optional(Schema.NullOr(Schema.String)),
+  description: Schema.optional(Schema.NullOr(Schema.String)),
+  inputTypeScript: Schema.optional(Schema.NullOr(Schema.String)),
+  outputTypeScript: Schema.optional(Schema.NullOr(Schema.String)),
+  typeScriptDefinitions: Schema.optional(
+    Schema.NullOr(Schema.Record(Schema.String, Schema.String)),
+  ),
 });
 export type ToolSchemaView = typeof ToolSchemaView.Type;
 
