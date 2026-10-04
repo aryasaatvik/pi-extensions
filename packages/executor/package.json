@@ -1,6 +1,6 @@
 {
   "name": "@pi-ext/executor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Executor tools for Pi: search and run TypeScript against a hosted Executor's tool catalog.",
   "keywords": [
     "executor",
