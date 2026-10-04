@@ -109,6 +109,7 @@ const SearchHitSchema = Type.Object({
   inputTypeScript: Type.Optional(Type.String()),
   outputTypeScript: Type.Optional(Type.String()),
   typeScriptDefinitions: Type.Optional(Type.Record(Type.String(), Type.String())),
+  detailsError: Type.Optional(Type.String()),
 });
 
 export const SearchOutput = Type.Object({ items: Type.Array(SearchHitSchema) });
@@ -117,6 +118,8 @@ export interface SearchHit extends SearchItem {
   readonly inputTypeScript?: string;
   readonly outputTypeScript?: string;
   readonly typeScriptDefinitions?: Readonly<Record<string, string>>;
+  /** Why `includeDetails` could not read this hit's schema. */
+  readonly detailsError?: string;
 }
 
 export interface SearchDetails {
@@ -179,6 +182,7 @@ export const searchText = (items: ReadonlyArray<SearchHit>): string => {
     lines.push("", `tools.${item.path}${description ? ` — ${description}` : ""}`);
     if (item.inputTypeScript) lines.push(`  input: ${item.inputTypeScript}`);
     if (item.outputTypeScript) lines.push(`  output: ${item.outputTypeScript}`);
+    if (item.detailsError) lines.push(`  types unavailable: ${item.detailsError}`);
     for (const [name, body] of Object.entries(item.typeScriptDefinitions ?? {}))
       definitions.set(name, body);
   }
@@ -204,21 +208,25 @@ export const search = (
       (item) =>
         client.describe(item.path).pipe(
           Effect.map((view): SearchHit => {
-            const roots = [view.inputTypeScript ?? "", view.outputTypeScript ?? ""];
-            const definitions = reachableDefinitions(roots, view.typeScriptDefinitions ?? {});
+            const inputTypeScript = view.inputTypeScript ?? undefined;
+            const outputTypeScript = view.outputTypeScript ?? undefined;
+            const definitions = reachableDefinitions(
+              [inputTypeScript ?? "", outputTypeScript ?? ""],
+              view.typeScriptDefinitions ?? {},
+            );
             return {
               ...item,
-              ...(view.inputTypeScript === undefined
-                ? {}
-                : { inputTypeScript: view.inputTypeScript }),
-              ...(view.outputTypeScript === undefined
-                ? {}
-                : { outputTypeScript: view.outputTypeScript }),
+              ...(inputTypeScript === undefined ? {} : { inputTypeScript }),
+              ...(outputTypeScript === undefined ? {} : { outputTypeScript }),
               ...(Object.keys(definitions).length === 0
                 ? {}
                 : { typeScriptDefinitions: definitions }),
             };
           }),
+          // One unreadable schema must not hide the other hits.
+          Effect.catch((error) =>
+            Effect.succeed<SearchHit>({ ...item, detailsError: error.message }),
+          ),
         ),
       { concurrency: DESCRIBE_CONCURRENCY },
     );

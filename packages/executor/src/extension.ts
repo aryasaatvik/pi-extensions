@@ -134,6 +134,9 @@ const renderSearchResult = (
       head,
       ...(item.inputTypeScript ? [theme.fg("dim", `  input: ${item.inputTypeScript}`)] : []),
       ...(item.outputTypeScript ? [theme.fg("dim", `  output: ${item.outputTypeScript}`)] : []),
+      ...(item.detailsError
+        ? [theme.fg("warning", `  types unavailable: ${item.detailsError}`)]
+        : []),
     ];
   });
   return new Text(body.join("\n"), 0, 0);
