@@ -1,0 +1,4 @@
+# Tegami requires a publish lock even for an unpublished current version.
+core:packages:
+  - id: npm:@pi-ext/executor
+    updated: true
