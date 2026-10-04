@@ -19,14 +19,20 @@
     "directory": "packages/executor"
   },
   "files": [
-    "src",
-    "!src/**/*.test.ts",
-    "!src/testing"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./extension": "./src/extension.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./extension": {
+      "types": "./dist/extension.d.ts",
+      "import": "./dist/extension.js"
+    }
   },
   "publishConfig": {
     "access": "public"
@@ -35,7 +41,10 @@
     "typecheck": "tsgo --noEmit",
     "test": "vitest run",
     "smoke": "bun src/smoke.ts",
-    "check": "bun run typecheck && bun run test"
+    "check": "bun run typecheck && bun run test",
+    "build": "tsdown",
+    "prepack": "bun run build",
+    "check:package": "bun scripts/check-package.ts"
   },
   "dependencies": {
     "effect": "catalog:"
@@ -46,6 +55,7 @@
     "@earendil-works/pi-coding-agent": "catalog:pi",
     "@earendil-works/pi-tui": "catalog:pi",
     "@types/node": "catalog:",
+    "tsdown": "catalog:",
     "typebox": "catalog:",
     "vitest": "catalog:"
   },
@@ -65,7 +75,7 @@
   },
   "pi": {
     "extensions": [
-      "./src/extension.ts"
+      "./dist/extension.js"
     ]
   }
 }
