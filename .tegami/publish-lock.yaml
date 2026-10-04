@@ -1,12 +1,12 @@
 core:changelogs:
-  - content: "---\npackages:\n  \"@pi-ext/executor\":\n    type: patch\n---\n\n## Ship compiled JavaScript and type declarations so consumers typecheck without allowImportingTsExtensions.\n"
-    filename: executor-dist.md
+  - content: "---\npackages:\n  \"@pi-ext/executor\":\n    type: patch\n---\n\n## Accept null schema fields in executor_search details and keep the other hits when one schema cannot be read.\n"
+    filename: executor-nullable-schema.md
     v: 0.0.0
 core:packages:
   - id: npm:pi-extensions
     updated: false
   - changelogIds:
-      - executor-dist.md
+      - executor-nullable-schema.md
     id: npm:@pi-ext/executor
     updated: true
 npm:packages:
