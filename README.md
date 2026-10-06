@@ -2,9 +2,8 @@
 
 Monorepo for [Pi coding agent](https://github.com/badlogic/pi-mono) extensions.
 
-This repository currently contains local extensions for web research and
-Executor integration. Packages share one Bun workspace, one lockfile, and
-root-level TypeScript, lint, and format tooling.
+This repository contains local Pi extensions. Packages share one Bun workspace,
+one lockfile, and root-level TypeScript, lint, and format tooling.
 
 ## Packages
 
@@ -15,6 +14,7 @@ root-level TypeScript, lint, and format tooling.
 | [`@pi-ext/kit`](./packages/kit)                           | Preset that installs the `ask` tool and permission modes together in one package.                                    |
 | [`@pi-ext/ask`](./packages/ask)                           | An `ask` tool letting the model pose multiple-choice questions to the user (mirrors Claude Code's AskUserQuestion).  |
 | [`@pi-ext/permission-modes`](./packages/permission-modes) | Claude-Code-style permission modes (Shift+Tab) with a merged allow/deny/ask rule engine and an approval overlay.     |
+| [`@pi-ext/subagents`](./packages/subagents)               | In-process sub-agents (task delegation) with shared permission gating.                                               |
 | [`@pi-ext/ui`](./packages/ui)                             | Shared terminal UI primitives: a reusable choice overlay (options, multi-select, notes, preview) + a question shell. |
 
 ## Install In Pi
@@ -131,6 +131,3 @@ GitHub release. No npm token is needed in GitHub Actions.
 ## Workspace Notes
 
 - Root `bun.lock` is authoritative.
-- `packages/executor` vendors `fumadb` under `packages/executor/vendor/`.
-  The workspace root owns the dependency and override so Executor SDK resolves
-  the patched package.
