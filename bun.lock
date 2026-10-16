@@ -36,7 +36,7 @@
     },
     "packages/executor": {
       "name": "@pi-ext/executor",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "dependencies": {
         "effect": "catalog:",
       },
