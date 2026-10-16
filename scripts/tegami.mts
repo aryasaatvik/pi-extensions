@@ -1,6 +1,7 @@
 import { tegami } from "tegami";
 import { runCli } from "tegami/cli";
 import { github } from "tegami/plugins/github";
+import { releaseChecks } from "./release-checks.mts";
 
 const paper = tegami({
   // Add a package by adding its publish metadata and removing it from ignore.
@@ -21,6 +22,7 @@ const paper = tegami({
     "@pi-ext/executor": {},
   },
   plugins: [
+    releaseChecks(),
     github({
       repo: "aryasaatvik/pi-extensions",
       pushTags: true,

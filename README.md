@@ -71,7 +71,7 @@ Install dependencies from the workspace root:
 bun install
 ```
 
-Run all package typechecks and tests plus root lint/format checks:
+Run formatting, lint, script/config and package typechecks, and offline tests:
 
 ```bash
 bun run check
@@ -84,7 +84,8 @@ bun run --filter @pi-ext/web check
 bun run --filter @pi-ext/executor check
 ```
 
-Root-owned tooling:
+Root-owned tooling (`build` builds Executor; `test:artifact` packs it and installs an
+isolated consumer to check exports, TypeScript resolution, and Node imports):
 
 ```bash
 bun run typecheck
@@ -92,6 +93,9 @@ bun run test
 bun run lint
 bun run format:check
 bun run format
+bun run build
+bun run test:artifact
+bun run release:check
 ```
 
 Package-level `oxlint` and `oxfmt` configs are intentionally not duplicated.
@@ -109,9 +113,14 @@ Because `GITHUB_TOKEN` creates and updates the version PR without triggering PR 
 Publish explicitly dispatches CI for the existing version branch so its head SHA gets checks.
 GitHub Actions must be allowed to create pull requests in the repository settings.
 
-`bun run version:packages` versions locally; `bun run release` checks and publishes
-an existing publish lock. Preview it with `bun run tegami publish --dry-run` or
-by dispatching the Publish workflow with `dry_run` enabled. Tegami uses Bun to pack
+`bun run release:version` versions locally; `bun run release:publish` publishes
+an existing publish lock. `release:check` runs `check`, `build`, and `test:artifact`.
+Tegami runs this full gate after preflight whenever Executor is selected for
+publication, including direct CLI and Publish workflow invocations. A failed gate
+stops publication before npm, tags, or GitHub releases. The Publish workflow also
+keeps its gate before versioning. Preview an existing publish lock with
+`bun run tegami publish --dry-run` or by dispatching the Publish workflow with
+`dry_run` enabled. Tegami uses Bun to pack
 and resolve `catalog:` versions, then npm to publish the tarball using trusted publishing.
 The initial publish lock selects the current executor `1.0.0` without bumping it;
 Tegami requires that lock even when the package has never been published.

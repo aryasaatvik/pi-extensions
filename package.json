@@ -10,16 +10,18 @@
   "type": "module",
   "scripts": {
     "prepare": "effect-language-service patch && effect-tsgo patch",
-    "typecheck": "tsgo --noEmit -p tsconfig.scripts.json && bun run --filter './packages/*' typecheck",
-    "test": "bun run --filter './packages/*' test",
-    "lint": "oxlint packages",
-    "format": "oxfmt packages scripts .github .tegami package.json README.md tsconfig.scripts.json",
-    "format:check": "oxfmt --check packages scripts .github .tegami package.json README.md tsconfig.scripts.json",
-    "check": "bun run --filter @pi-ext/executor check:package && bun run typecheck && bun run lint && bun run format:check && bun run test",
+    "typecheck": "tsc --noEmit -p tsconfig.json && bun run --filter './packages/*' typecheck",
+    "test": "bun test scripts && bun run --filter './packages/*' test",
+    "lint": "oxlint packages scripts *.config.ts",
+    "format": "oxfmt packages scripts .github .tegami *.json *.config.ts README.md",
+    "format:check": "oxfmt --check packages scripts .github .tegami *.json *.config.ts README.md",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "tegami": "bun scripts/tegami.mts",
-    "version:packages": "bun run tegami version",
-    "release:check": "bun run check",
-    "release": "bun run release:check && bun run tegami publish"
+    "release:check": "bun run check && bun run build && bun run test:artifact",
+    "build": "bun run --filter @pi-ext/executor build",
+    "test:artifact": "bun run --filter @pi-ext/executor test:artifact",
+    "release:version": "bun run tegami version",
+    "release:publish": "bun run tegami publish"
   },
   "devDependencies": {
     "@effect/language-service": "^0.87.3",
