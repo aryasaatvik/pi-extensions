@@ -41,10 +41,13 @@
     "typecheck": "tsgo --noEmit",
     "test": "vitest run",
     "smoke": "bun src/smoke.ts",
-    "check": "bun run typecheck && bun run test",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "build": "tsdown",
     "prepack": "bun run build",
-    "check:package": "bun scripts/check-package.ts"
+    "test:artifact": "bun scripts/check-package.ts",
+    "lint": "oxlint src scripts tsdown.config.ts",
+    "format": "oxfmt src scripts tsdown.config.ts",
+    "format:check": "oxfmt --check src scripts tsdown.config.ts"
   },
   "dependencies": {
     "effect": "catalog:"
