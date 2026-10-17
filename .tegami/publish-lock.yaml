@@ -1,12 +1,12 @@
 core:changelogs:
-  - content: "---\npackages:\n  \"@pi-ext/executor\":\n    type: patch\n---\n\n## Accept null schema fields in executor_search details and keep the other hits when one schema cannot be read.\n"
-    filename: executor-nullable-schema.md
+  - content: "---\npackages:\n  \"@pi-ext/executor\":\n    type: patch\n---\n\n## Require pi-coding-agent >=1.2.0, which fixes the missing MCP_TYPESCRIPT_PREAMBLE import.\n"
+    filename: executor-pi-peer-floor.md
     v: 0.0.0
 core:packages:
   - id: npm:pi-extensions
     updated: false
   - changelogIds:
-      - executor-nullable-schema.md
+      - executor-pi-peer-floor.md
     id: npm:@pi-ext/executor
     updated: true
 npm:packages:

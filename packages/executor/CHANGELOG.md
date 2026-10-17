@@ -1,3 +1,7 @@
+## @pi-ext/executor@1.0.3
+
+### Require pi-coding-agent >=1.2.0, which fixes the missing MCP_TYPESCRIPT_PREAMBLE import.
+
 ## @pi-ext/executor@1.0.2
 
 ### Accept null schema fields in executor_search details and keep the other hits when one schema cannot be read.
