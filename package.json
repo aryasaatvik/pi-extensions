@@ -24,8 +24,8 @@
     "release:publish": "bun run tegami publish"
   },
   "devDependencies": {
-    "@effect/language-service": "^0.87.3",
-    "@effect/tsgo": "^0.13.0",
+    "@effect/language-service": "^0.87.5",
+    "@effect/tsgo": "^0.13.2",
     "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260527.2",
     "oxfmt": "^0.52.0",
@@ -39,7 +39,7 @@
   "packageManager": "bun@1.4.2",
   "catalog": {
     "@types/node": "^25.0.0",
-    "effect": "4.0.0",
+    "effect": "4.0.6",
     "typebox": "1.3.27",
     "vitest": "4.1.7",
     "tsdown": "0.22.14"
