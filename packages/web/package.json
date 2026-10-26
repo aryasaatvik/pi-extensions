@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "effect": "catalog:",
-    "exa-js": "^2.8.0",
+    "exa-js": "^2.26.0",
     "parallel-web": "^0.5.0"
   },
   "devDependencies": {
