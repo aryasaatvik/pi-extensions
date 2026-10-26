@@ -32,15 +32,13 @@
     "@earendil-works/pi-coding-agent": "catalog:pi",
     "@earendil-works/pi-tui": "catalog:pi",
     "@types/node": "catalog:",
-    "typebox": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "catalog:pi",
     "@earendil-works/pi-ai": "catalog:pi",
     "@earendil-works/pi-coding-agent": "catalog:pi",
-    "@earendil-works/pi-tui": "catalog:pi",
-    "typebox": "catalog:"
+    "@earendil-works/pi-tui": "catalog:pi"
   },
   "pi": {
     "extensions": [
