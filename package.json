@@ -30,7 +30,7 @@
     "@typescript/native-preview": "7.0.0-dev.20260527.2",
     "oxfmt": "^0.74.0",
     "oxlint": "^1.89.0",
-    "tegami": "1.4.0",
+    "tegami": "1.5.0",
     "typescript": "^6.0.3"
   },
   "engines": {

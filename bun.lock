@@ -11,7 +11,7 @@
         "@typescript/native-preview": "7.0.0-dev.20260527.2",
         "oxfmt": "^0.74.0",
         "oxlint": "^1.89.0",
-        "tegami": "1.4.0",
+        "tegami": "1.5.0",
         "typescript": "^6.0.3",
       },
     },
@@ -725,7 +725,7 @@
 
     "std-env": ["std-env@4.1.0", "", {}, "sha512-Rq7ybcX2RuC55r9oaPVEW7/xu3tj8u4GeBYHBWCychFtzMIr86A7e3PPEBPT37sHStKX3+TiX/Fr/ACmJLVlLQ=="],
 
-    "tegami": ["tegami@1.4.0", "", { "dependencies": { "@clack/prompts": "^1.7.0", "@rainbowatcher/toml-edit-js": "^0.6.5", "semver": "^7.8.5", "tinyexec": "^1.2.4", "tinyglobby": "^0.2.17", "yaml": "^2.9.0" } }, "sha512-QjoIJuAdsp+iAb1NT1CDn6zvxa7HqmEdJLN2BKW7LXZ8pbga/8tktcZr9bArw7KBdT5+Zj5Y9kreF3gjgrpfKQ=="],
+    "tegami": ["tegami@1.5.0", "", { "dependencies": { "@clack/prompts": "^1.7.0", "@rainbowatcher/toml-edit-js": "^0.6.5", "semver": "^7.8.5", "tinyexec": "^1.2.4", "tinyglobby": "^0.2.17", "yaml": "^2.9.0" } }, "sha512-j78wrn0kOz7Dzr9oHQ0QD00tsNh4GxSmqCdNBH9XSBZWDltqcT61zKM3KYYvOW/ostFjwGh0sGV5WzsenLYuIA=="],
 
     "tinybench": ["tinybench@2.9.0", "", {}, "sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg=="],
 
