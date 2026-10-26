@@ -1,3 +1,9 @@
+## @pi-ext/executor@1.0.4
+
+### Depend on effect 4.0.6.
+
+Published `@pi-ext/executor` now depends on effect 4.0.6, so consumers can bundle one Effect without overriding this package.
+
 ## @pi-ext/executor@1.0.3
 
 ### Require pi-coding-agent >=1.2.0, which fixes the missing MCP_TYPESCRIPT_PREAMBLE import.
