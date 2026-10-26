@@ -21,7 +21,7 @@
     "./scope": "./src/scope.ts"
   },
   "scripts": {
-    "typecheck": "tsgo --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "lint": "oxlint src test",
     "format": "oxfmt src test",

@@ -9,7 +9,7 @@
   ],
   "type": "module",
   "scripts": {
-    "prepare": "effect-language-service patch && effect-tsgo patch",
+    "prepare": "effect-tsgo patch",
     "typecheck": "tsc --noEmit -p tsconfig.json && bun run --filter './packages/*' typecheck",
     "test": "bun test scripts && bun run --filter './packages/*' test",
     "lint": "oxlint packages scripts *.config.ts",
@@ -24,14 +24,12 @@
     "release:publish": "bun run tegami publish"
   },
   "devDependencies": {
-    "@effect/language-service": "^0.87.5",
-    "@effect/tsgo": "^0.13.2",
+    "@effect/tsgo": "0.57.0",
     "@types/node": "catalog:",
-    "@typescript/native-preview": "7.0.0-dev.20260527.2",
     "oxfmt": "^0.74.0",
     "oxlint": "^1.89.0",
     "tegami": "1.5.0",
-    "typescript": "^6.0.3"
+    "typescript": "7.0.2"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -38,7 +38,7 @@
     "access": "public"
   },
   "scripts": {
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "smoke": "bun src/smoke.ts",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
@@ -59,6 +59,7 @@
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "typebox": "catalog:",
+    "typescript-next": "npm:typescript@7.1.0-beta",
     "vitest": "catalog:"
   },
   "peerDependencies": {
