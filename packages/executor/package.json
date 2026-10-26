@@ -59,6 +59,7 @@
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "typebox": "catalog:",
+    "typescript-next": "npm:typescript@7.1.0-beta",
     "vitest": "catalog:"
   },
   "peerDependencies": {

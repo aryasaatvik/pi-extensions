@@ -5,7 +5,13 @@ export default defineConfig({
   format: "esm",
   platform: "node",
   fixedExtension: false,
-  dts: true,
+  // TypeScript 7 has no classic compiler API, and Effect service classes
+  // (`extends Context.Service(...)`) rule out `isolatedDeclarations`. Declaration
+  // emit therefore goes through the TypeScript Go API, which first ships in 7.1.
+  dts: {
+    generator: "tsgo",
+    tsgo: { moduleUrl: import.meta.resolve("typescript-next") },
+  },
   clean: true,
   deps: {
     neverBundle: [/^effect(\/|$)/, /^typebox(\/|$)/, /^@earendil-works\//],
