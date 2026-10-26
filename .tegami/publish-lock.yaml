@@ -1,12 +1,12 @@
 core:changelogs:
-  - content: "---\npackages:\n  \"@pi-ext/executor\":\n    type: patch\n---\n\n## Require pi-coding-agent >=1.2.0, which fixes the missing MCP_TYPESCRIPT_PREAMBLE import.\n"
-    filename: executor-pi-peer-floor.md
+  - content: "---\npackages:\n  \"@pi-ext/executor\":\n    type: patch\n---\n\n## Depend on effect 4.0.6.\n\nPublished `@pi-ext/executor` now depends on effect 4.0.6, so consumers can bundle one Effect without overriding this package.\n"
+    filename: executor-effect-4.0.6.md
     v: 0.0.0
 core:packages:
   - id: npm:pi-extensions
     updated: false
   - changelogIds:
-      - executor-pi-peer-floor.md
+      - executor-effect-4.0.6.md
     id: npm:@pi-ext/executor
     updated: true
 npm:packages:
