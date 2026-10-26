@@ -42,7 +42,7 @@
     "effect": "4.0.6",
     "typebox": "1.3.27",
     "vitest": "4.1.12",
-    "tsdown": "0.22.14"
+    "tsdown": "0.23.2"
   },
   "catalogs": {
     "pi": {
