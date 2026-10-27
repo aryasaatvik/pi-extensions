@@ -108,7 +108,7 @@ Only `@pi-ext/executor` publishes to npm. Run `bun run tegami` (no subcommand)
 to add an interactive release note under `.tegami/`, then commit it with the change.
 Merging to `main` runs checks and opens the `tegami/version-packages` version PR.
 Merging that PR publishes with npm provenance, creates the per-package tag
-(e.g. `@pi-ext/executor@1.0.1`), and creates its GitHub release.
+(e.g. `@pi-ext/executor@1.0.4`), and creates its GitHub release.
 Because `GITHUB_TOKEN` creates and updates the version PR without triggering PR workflows,
 Publish explicitly dispatches CI for the existing version branch so its head SHA gets checks.
 GitHub Actions must be allowed to create pull requests in the repository settings.
@@ -122,20 +122,24 @@ keeps its gate before versioning. Preview an existing publish lock with
 `bun run tegami publish --dry-run` or by dispatching the Publish workflow with
 `dry_run` enabled. Tegami uses Bun to pack
 and resolve `catalog:` versions, then npm to publish the tarball using trusted publishing.
-The initial publish lock selects the current executor `1.0.0` without bumping it;
-Tegami requires that lock even when the package has never been published.
+Tegami requires `.tegami/publish-lock.yaml` even when the package has never been
+published. The first lock selected `@pi-ext/executor@1.0.0` with no changelog, so
+that version published without a bump. A changelog `type` bumps later releases; the
+version PR records that changelog in the lock, and merging the PR publishes it.
+The lock on `main` is the published `@pi-ext/executor@1.0.4` release.
 
 ### One-time bootstrap
 
 [npm requires the package to exist before configuring a trusted publisher](https://docs.npmjs.com/cli/v11/commands/npm-trust/#prerequisites).
-Before enabling the first publish run, a logged-in maintainer must run `bun publish`
-from `packages/executor` once to publish `@pi-ext/executor@1.0.0` (and must own or have
-publish access to the `@pi-ext` scope). Then, in that package's npmjs.com settings,
-add a GitHub trusted publisher: owner `aryasaatvik`, repository `pi-extensions`,
+That bootstrap is done. A logged-in maintainer published `@pi-ext/executor@1.0.0`
+once with `bun publish` from `packages/executor` (they had to own or have publish
+access to the `@pi-ext` scope). Then, in that package's npmjs.com settings, they
+added a GitHub trusted publisher: owner `aryasaatvik`, repository `pi-extensions`,
 workflow `publish.yml`, no environment, with permission to publish. After this setup,
 CI owns subsequent releases with provenance; the manual bootstrap publish has no
-CI provenance. CI skips the already-published npm version and completes its tag and
-GitHub release. No npm token is needed in GitHub Actions.
+CI provenance. CI skips an npm version that is already published and still creates a
+missing tag and GitHub release. No npm token is needed in GitHub Actions. The current
+npm release is `@pi-ext/executor@1.0.4`.
 
 ## Workspace Notes
 

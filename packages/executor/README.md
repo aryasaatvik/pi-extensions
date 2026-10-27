@@ -9,10 +9,10 @@ sources, secrets, policies, and semantic search; nothing runs locally.
 
 ## Tools
 
-| Tool               | What it does                                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------------ |
-| `executor_search`  | Semantic search over the catalog. Returns callable paths and, with `includeDetails`, TypeScript types. |
-| `executor_execute` | Runs a TypeScript snippet in the server's sandbox (`await tools.<path>(input)`, top-level `return`).   |
+| Tool               | What it does                                                                                                                            |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `executor_search`  | Semantic search over the catalog. Returns callable paths and, with `includeDetails`, TypeScript types. `limit` defaults to 10 (max 50). |
+| `executor_execute` | Runs a TypeScript snippet in the server's sandbox (`await tools.<path>(input)`, top-level `return`).                                    |
 
 When a tool call needs approval, Executor pauses the execution. The bridge answers through an
 **approval policy** and resumes, so each `executor_execute` call returns one completed result.
@@ -51,7 +51,10 @@ const tools = executorTools({ client, policy: "decline", trace });
 ```
 
 - `policy` is `"decline"`, `"accept"`, or `(request) => Promise<action | { action, content?, persist? }>`.
-  `request` carries the paused tool's `address`, `message`, `args`, and any form `requestedSchema`.
+  `action` is `"accept"`, `"decline"`, or `"cancel"`.
+  `request` is the paused interaction (`kind` `"url"` or `"form"`, `address`, `message`,
+  `instructions`, `args`, optional `url`, `requestedSchema`, and `meta`) plus `executionId`
+  and optional `expiresAt`.
 - `trace` is an array or a callback; it receives one record per tool call, failures included:
   `{ kind: "search", query, result, isError, durationMs }` or
   `{ kind: "execute", code, result, isError, toolCalls?, approvals, durationMs }`.
