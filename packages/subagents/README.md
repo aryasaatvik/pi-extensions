@@ -21,7 +21,7 @@ delegates a scoped piece of work to a child agent running **in-process**.
 
 ```
 task({ operation: "spawn", subagent_type: "explore", description: "find auth flow", prompt: "…" })
-task({ operation: "spawn", subagent_type: "general-purpose", prompt: "…", background: true })
+task({ operation: "spawn", subagent_type: "general-purpose", prompt: "…", model: "provider/model-id", background: true })
 task({ operation: "output", task_id: "…" })
 task({ operation: "list" })
 task({ operation: "cancel", task_id: "…" })   // or { all: true }
@@ -34,7 +34,7 @@ task({ operation: "cancel", task_id: "…" })   // or { all: true }
 name: explore
 description: Read-only codebase exploration
 tools: read, grep, find, ls
-model: anthropic/claude-haiku-4-5 # optional; defaults to the parent model
+model: anthropic/claude-haiku-4-5 # optional; else settings defaultModel, else the parent model
 ---
 
 You are a focused codebase explorer. …
@@ -42,5 +42,9 @@ You are a focused codebase explorer. …
 
 ## Config
 
-Global `~/.pi/agent/pi-subagents.json`, project `.pi/pi-subagents.json`. Use
-`/subagents` to inspect. Settings: concurrency caps and per-task output cap.
+Global `~/.pi/agent/pi-subagents.json`, project `.pi/pi-subagents.json`. Settings:
+`maxConcurrentPerSession` (default 5), `maxConcurrentGlobal` (default 15),
+`outputCapBytes` (default 65536), and optional `defaultModel` (`provider/model-id`).
+`/subagents` lists agents and tasks. `/subagents config` prints the resolved settings.
+`/subagents models` lists model ids you can pass as `model`. `/subagents cancel <id|all>`
+stops background tasks; `cancel` with no id cancels all.
